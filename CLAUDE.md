@@ -97,10 +97,9 @@ pytest tests/ -v                  # Python tests
 npm test                          # Node.js tests
 
 # Code quality checks
-black .                           # Python formatter
-isort .                          # Python import sorting
+ruff format .                    # Python formatter
+ruff check .                     # Python linter and import sorting
 mypy .                           # Python type checking
-flake8 .                         # Python linter
 npm run lint                     # JavaScript/TypeScript linter
 
 # Database operations
