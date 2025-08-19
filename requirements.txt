@@ -8,6 +8,7 @@ alembic>=1.12.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 python-dotenv>=1.0.0
+PyYAML>=6.0.1,<7
 
 # Testing
 pytest>=7.0.0
@@ -20,6 +21,7 @@ testcontainers[postgres]>=3.7.0
 # Development tools
 mypy>=1.7.0
 ruff>=0.1.0
+types-PyYAML>=6.0.0  # Type stubs for PyYAML
 
 # Caching (optional)
 redis[hiredis]>=4.5.0  # Optional: for Redis-based caching

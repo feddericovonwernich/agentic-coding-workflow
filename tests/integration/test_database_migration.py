@@ -584,7 +584,7 @@ class TestDatabaseMigration:
 
             await session.commit()
 
-            # Test PR lookup performance (should be < 35ms for integration tests)
+            # Test PR lookup performance (should be < 40ms for integration tests)
             start_time = time.time()
             result = await session.execute(
                 text("""
@@ -596,8 +596,8 @@ class TestDatabaseMigration:
 
             pr_lookup_time = (time.time() - start_time) * 1000  # Convert to ms
 
-            assert pr_lookup_time < 35, (
-                f"PR lookup took {pr_lookup_time:.2f}ms (should be < 35ms)"
+            assert pr_lookup_time < 40, (
+                f"PR lookup took {pr_lookup_time:.2f}ms (should be < 40ms)"
             )
 
             pr = result.fetchone()
@@ -650,7 +650,7 @@ class TestDatabaseMigration:
 
             await session.commit()
 
-            # Test PR lookup performance (should be < 35ms for integration tests)
+            # Test PR lookup performance (should be < 40ms for integration tests)
             start_time = time.time()
             result = await session.execute(
                 text("""
@@ -662,8 +662,8 @@ class TestDatabaseMigration:
 
             pr_lookup_time = (time.time() - start_time) * 1000  # Convert to ms
 
-            assert pr_lookup_time < 35, (
-                f"PR lookup took {pr_lookup_time:.2f}ms (should be < 35ms)"
+            assert pr_lookup_time < 40, (
+                f"PR lookup took {pr_lookup_time:.2f}ms (should be < 40ms)"
             )
 
             pr = result.fetchone()

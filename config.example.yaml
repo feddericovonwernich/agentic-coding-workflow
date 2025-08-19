@@ -1,0 +1,148 @@
+# Example configuration file for the Agentic Coding Workflow System
+# Copy this file to config.yaml and customize for your environment
+
+# Core system configuration
+system:
+  log_level: INFO                          # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  environment: production                  # Deployment environment (development, staging, production)
+  worker_timeout: 300                     # Maximum worker execution time in seconds
+  max_retry_attempts: 3                   # Maximum number of retry attempts for failed operations
+  circuit_breaker_failure_threshold: 5   # Number of failures before opening circuit breaker
+  circuit_breaker_timeout: 60            # Circuit breaker timeout in seconds
+  metrics_collection_enabled: true       # Enable system metrics collection
+  debug_mode: false                       # Enable debug mode with verbose logging
+
+# Database connection settings
+database:
+  url: "${DATABASE_URL}"                  # Database connection URL (PostgreSQL, MySQL, SQLite)
+  pool_size: 10                          # Database connection pool size
+  max_overflow: 20                       # Maximum overflow connections beyond pool size
+  pool_timeout: 30                       # Timeout in seconds for getting connection from pool
+  pool_recycle: 3600                     # Connection recycle time in seconds
+  echo: false                            # Enable SQLAlchemy query logging
+
+# Message queue configuration
+queue:
+  provider: redis                        # Queue provider (redis, rabbitmq, sqs)
+  url: "${REDIS_URL:redis://localhost:6379/0}"  # Queue connection URL with default
+  default_queue: default                 # Default queue name
+  max_retries: 3                        # Maximum message retry attempts
+  visibility_timeout: 300               # Message visibility timeout in seconds
+  dead_letter_queue_enabled: true      # Enable dead letter queue for failed messages
+  batch_size: 10                       # Message batch processing size
+
+# LLM provider configurations
+llm:
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"      # Anthropic API key
+    model: claude-3-sonnet-20240229      # Model name/identifier
+    max_tokens: 4000                     # Maximum tokens per request
+    temperature: 0.1                     # Sampling temperature (lower = more deterministic)
+    timeout: 60                          # Request timeout in seconds
+    rate_limit_rpm: 1000                # Rate limit in requests per minute
+
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"         # OpenAI API key
+    model: gpt-4                         # Model name/identifier
+    max_tokens: 4000                     # Maximum tokens per request
+    temperature: 0.1                     # Sampling temperature
+    timeout: 60                          # Request timeout in seconds
+    rate_limit_rpm: 3000                # Rate limit in requests per minute
+
+# Default LLM provider to use
+default_llm_provider: anthropic
+
+# Notification system settings
+notification:
+  enabled: true                          # Enable notification system
+  escalation_enabled: true              # Enable escalation notifications
+  escalation_delay: 1800                # Delay before escalation in seconds (30 minutes)
+  max_notifications_per_hour: 10        # Maximum notifications per hour to prevent spam
+  
+  channels:
+    - provider: telegram                 # Telegram notification channel
+      enabled: true
+      telegram_bot_token: "${TELEGRAM_BOT_TOKEN}"   # Telegram bot token
+      telegram_chat_id: "${TELEGRAM_CHAT_ID}"       # Telegram chat ID
+    
+    - provider: slack                    # Slack notification channel
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"      # Slack webhook URL
+      slack_channel: "#alerts"          # Slack channel name
+    
+    - provider: email                    # Email notification channel
+      enabled: false                     # Disabled by default
+      email_smtp_host: "${EMAIL_SMTP_HOST:smtp.gmail.com}"
+      email_smtp_port: 587
+      email_username: "${EMAIL_USERNAME}"
+      email_password: "${EMAIL_PASSWORD}"
+      email_from_address: "${EMAIL_FROM_ADDRESS}"
+      email_to_addresses:
+        - "${EMAIL_TO_ADDRESS_1}"
+        - "${EMAIL_TO_ADDRESS_2}"
+
+# Repository monitoring configuration
+repositories:
+  - url: https://github.com/your-org/your-repo          # Repository URL
+    auth_token: "${GITHUB_TOKEN}"                       # GitHub authentication token
+    polling_interval: 300                               # PR polling interval in seconds (5 minutes)
+    failure_threshold: 5                                # Number of failures before human escalation
+    
+    # Patterns to skip during processing
+    skip_patterns:
+      pr_labels:                        # Skip PRs with these labels
+        - wip
+        - draft
+        - dependencies
+      check_names:                      # Skip checks with these name patterns
+        - "codecov/*"
+        - "license/*"
+      authors:                          # Skip PRs from these authors
+        - "dependabot[bot]"
+    
+    # Fix category configuration
+    fix_categories:
+      lint:                             # Linting and formatting fixes
+        enabled: true
+        confidence_threshold: 60        # Minimum confidence score to attempt fix
+        max_files_changed: 10          # Maximum files that can be changed
+      
+      test:                            # Test failure fixes
+        enabled: true
+        confidence_threshold: 80        # Higher threshold for test fixes
+        run_full_test_suite: true      # Run full test suite after fix
+      
+      compilation:                     # Compilation error fixes
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 5
+      
+      security:                        # Security issue fixes (typically disabled)
+        enabled: false
+        always_escalate: true          # Always escalate to humans
+      
+      infrastructure:                  # Infrastructure failure fixes (typically disabled)
+        enabled: false
+        always_escalate: true          # Always escalate to humans
+    
+    is_critical: false                 # Whether this is a critical production repository
+    timezone: UTC                      # Repository timezone for business hours calculation
+    
+    # Optional: Business hours configuration (fixes outside these hours for critical repos)
+    business_hours:
+      start: "09:00"
+      end: "17:00"
+
+  # Additional repositories can be added here
+  # - url: https://github.com/your-org/another-repo
+  #   auth_token: "${GITHUB_TOKEN}"
+  #   # ... other configuration options
+
+# Claude Code SDK settings
+claude_code_sdk:
+  timeout: 300                         # SDK operation timeout in seconds
+  max_concurrent_fixes: 3              # Maximum concurrent fix operations
+  test_validation_enabled: true       # Enable test validation before commits
+  rollback_enabled: true              # Enable automatic rollback on failures
