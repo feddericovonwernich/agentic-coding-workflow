@@ -312,9 +312,9 @@ python scripts/test_maintainability_report.py
 
 ```bash
 # Static analysis of test code
-pylint tests/ --rcfile=.pylintrc-tests
-flake8 tests/ --config=setup.cfg
-mypy tests/ --config-file=myproject.toml
+ruff check tests/
+ruff format tests/ --check
+mypy tests/ --config-file=pyproject.toml
 ```
 
 ### Test Duplication Analysis
@@ -381,7 +381,7 @@ python scripts/test_performance_analysis.py test-results.json
 python scripts/test_documentation_analysis.py
 
 # 6. Code quality analysis
-pylint tests/ --rcfile=.pylintrc-tests --output-format=json > test-pylint.json
+ruff check tests/ --output-format=json > test-ruff.json
 python scripts/test_quality_report.py
 
 echo "Test quality analysis complete. Check reports/ directory for results."
@@ -503,7 +503,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest-cov pytest-json-report pylint radon
+        pip install pytest-cov pytest-json-report ruff radon
     
     - name: Run quality analysis
       run: |
