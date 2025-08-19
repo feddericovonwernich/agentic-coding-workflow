@@ -2,7 +2,10 @@
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from . import AnalysisResult
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -25,15 +28,17 @@ class FixAttempt(BaseModel):
     fix_strategy: Mapped[str] = mapped_column(String(100), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    success: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    attempt_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    success: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Timing information
-    started_at: Mapped[Optional[datetime]] = mapped_column(
+    started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
+    completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -44,4 +49,7 @@ class FixAttempt(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<FixAttempt(id={self.id}, strategy={self.fix_strategy}, status={self.status})>"
+        return (
+            f"<FixAttempt(id={self.id}, strategy={self.fix_strategy}, "
+            f"status={self.status})>"
+        )

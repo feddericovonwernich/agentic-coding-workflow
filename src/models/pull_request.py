@@ -1,9 +1,21 @@
 """PullRequest SQLAlchemy model."""
 
 import uuid
-from typing import Any, Optional
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
+if TYPE_CHECKING:
+    from . import CheckRun, PRStateHistory, Repository, Review
+
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,8 +48,15 @@ class PullRequest(BaseModel):
 
     # URLs and metadata
     url: Mapped[str] = mapped_column(String(500), nullable=False)
-    body: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    pr_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    pr_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
+
+    # Tracking fields
+    last_checked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationships
     repository: Mapped["Repository"] = relationship(
@@ -60,7 +79,10 @@ class PullRequest(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<PullRequest(id={self.id}, repo_id={self.repository_id}, pr_number={self.pr_number}, state={self.state})>"
+        return (
+            f"<PullRequest(id={self.id}, repo_id={self.repository_id}, "
+            f"pr_number={self.pr_number}, state={self.state})>"
+        )
 
     @property
     def is_active(self) -> bool:
@@ -75,31 +97,30 @@ class PullRequest(BaseModel):
     def can_transition_to(self, new_state: PRState) -> bool:
         """Check if PR can transition to new state."""
         current = self.state
-        
+
         # Valid state transitions
         valid_transitions = {
             PRState.OPENED: {PRState.CLOSED, PRState.MERGED},
             PRState.CLOSED: {PRState.OPENED},  # Can reopen
             PRState.MERGED: set(),  # Cannot transition from merged
         }
-        
+
         return new_state in valid_transitions.get(current, set())
 
     def update_state(
-        self, 
-        new_state: PRState, 
+        self,
+        new_state: PRState,
         trigger_event: TriggerEvent,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Update PR state with validation."""
         if not self.can_transition_to(new_state):
             raise ValueError(
                 f"Invalid state transition from {self.state} to {new_state}"
             )
-        
-        old_state = self.state
+
         self.state = new_state
-        
+
         # Update metadata if provided
         if metadata:
             if self.pr_metadata is None:
@@ -110,26 +131,26 @@ class PullRequest(BaseModel):
         """Get the most recent check runs for this PR."""
         if not self.check_runs:
             return []
-        
+
         # Group by check name and get the latest for each
-        latest_checks = {}
+        latest_checks: dict[str, CheckRun] = {}
         for check in self.check_runs:
-            check_name = check.name
+            check_name = check.check_name
             if (
-                check_name not in latest_checks 
+                check_name not in latest_checks
                 or check.created_at > latest_checks[check_name].created_at
             ):
                 latest_checks[check_name] = check
-        
+
         return list(latest_checks.values())
 
     def has_failed_checks(self) -> bool:
         """Check if PR has any failed check runs."""
         from .enums import CheckConclusion, CheckStatus
-        
+
         latest_checks = self.get_latest_check_runs()
         return any(
-            check.status == CheckStatus.COMPLETED 
+            check.status == CheckStatus.COMPLETED
             and check.conclusion == CheckConclusion.FAILURE
             for check in latest_checks
         )
@@ -137,11 +158,12 @@ class PullRequest(BaseModel):
     def get_failed_checks(self) -> list["CheckRun"]:
         """Get all failed check runs for this PR."""
         from .enums import CheckConclusion, CheckStatus
-        
+
         latest_checks = self.get_latest_check_runs()
         return [
-            check for check in latest_checks
-            if check.status == CheckStatus.COMPLETED 
+            check
+            for check in latest_checks
+            if check.status == CheckStatus.COMPLETED
             and check.conclusion == CheckConclusion.FAILURE
         ]
 
@@ -149,17 +171,17 @@ class PullRequest(BaseModel):
         """Check if PR is ready for review (not draft, has passing checks)."""
         if self.draft or not self.is_active:
             return False
-        
+
         # If there are no checks, consider it ready
         latest_checks = self.get_latest_check_runs()
         if not latest_checks:
             return True
-        
+
         # All checks must be completed and successful
         from .enums import CheckConclusion, CheckStatus
-        
+
         return all(
-            check.status == CheckStatus.COMPLETED 
+            check.status == CheckStatus.COMPLETED
             and check.conclusion == CheckConclusion.SUCCESS
             for check in latest_checks
         )

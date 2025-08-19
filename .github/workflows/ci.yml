@@ -8,7 +8,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   code-quality:
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
         
     steps:
     - name: Checkout code
@@ -193,7 +193,7 @@ jobs:
     - name: Create minimal Dockerfile for testing
       run: |
         cat > Dockerfile << 'EOF'
-        FROM python:3.11-slim
+        FROM python:3.12-slim
         
         WORKDIR /app
         

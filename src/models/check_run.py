@@ -1,10 +1,13 @@
 """CheckRun SQLAlchemy model."""
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+if TYPE_CHECKING:
+    from . import AnalysisResult, PullRequest
+
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,26 +28,28 @@ class CheckRun(BaseModel):
     # GitHub check run information
     external_id: Mapped[str] = mapped_column(String(100), nullable=False)
     check_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    check_suite_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    check_suite_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[CheckStatus] = mapped_column(nullable=False)
-    conclusion: Mapped[Optional[CheckConclusion]] = mapped_column(nullable=True)
+    conclusion: Mapped[CheckConclusion | None] = mapped_column(nullable=True)
 
     # URLs and metadata
-    details_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    logs_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    output_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    output_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    details_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    logs_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    output_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    output_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timing information
-    started_at: Mapped[Optional[datetime]] = mapped_column(
+    started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
+    completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
     # Additional data
-    check_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    check_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Relationships
     pull_request: Mapped["PullRequest"] = relationship(
@@ -56,7 +61,10 @@ class CheckRun(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<CheckRun(id={self.id}, pr_id={self.pr_id}, name={self.check_name}, status={self.status})>"
+        return (
+            f"<CheckRun(id={self.id}, pr_id={self.pr_id}, "
+            f"name={self.check_name}, status={self.status})>"
+        )
 
     @property
     def is_completed(self) -> bool:
@@ -67,7 +75,7 @@ class CheckRun(BaseModel):
     def is_successful(self) -> bool:
         """Check if check run completed successfully."""
         return (
-            self.status == CheckStatus.COMPLETED 
+            self.status == CheckStatus.COMPLETED
             and self.conclusion == CheckConclusion.SUCCESS
         )
 
@@ -75,7 +83,7 @@ class CheckRun(BaseModel):
     def is_failed(self) -> bool:
         """Check if check run failed."""
         return (
-            self.status == CheckStatus.COMPLETED 
+            self.status == CheckStatus.COMPLETED
             and self.conclusion == CheckConclusion.FAILURE
         )
 
@@ -85,7 +93,7 @@ class CheckRun(BaseModel):
         return self.status in (CheckStatus.QUEUED, CheckStatus.IN_PROGRESS)
 
     @property
-    def duration(self) -> Optional[float]:
+    def duration(self) -> float | None:
         """Get duration of check run in seconds."""
         if not self.started_at or not self.completed_at:
             return None
@@ -94,7 +102,7 @@ class CheckRun(BaseModel):
     def can_transition_to_status(self, new_status: CheckStatus) -> bool:
         """Check if check run can transition to new status."""
         current = self.status
-        
+
         # Valid status transitions
         valid_transitions = {
             CheckStatus.QUEUED: {CheckStatus.IN_PROGRESS, CheckStatus.CANCELLED},
@@ -102,38 +110,38 @@ class CheckRun(BaseModel):
             CheckStatus.COMPLETED: set(),  # Cannot transition from completed
             CheckStatus.CANCELLED: {CheckStatus.QUEUED},  # Can restart cancelled
         }
-        
+
         return new_status in valid_transitions.get(current, set())
 
     def update_status(
         self,
         new_status: CheckStatus,
-        conclusion: Optional[CheckConclusion] = None,
-        metadata: Optional[dict[str, Any]] = None
+        conclusion: CheckConclusion | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Update check run status with validation."""
         if not self.can_transition_to_status(new_status):
             raise ValueError(
                 f"Invalid status transition from {self.status} to {new_status}"
             )
-        
+
         old_status = self.status
         self.status = new_status
-        
+
         # Set conclusion if provided and status is completed
         if new_status == CheckStatus.COMPLETED and conclusion is not None:
             self.conclusion = conclusion
             if self.completed_at is None:
-                self.completed_at = datetime.now(timezone.utc)
-        
+                self.completed_at = datetime.now(UTC)
+
         # Set started_at if transitioning to in_progress for the first time
         if (
-            new_status == CheckStatus.IN_PROGRESS 
-            and old_status == CheckStatus.QUEUED 
+            new_status == CheckStatus.IN_PROGRESS
+            and old_status == CheckStatus.QUEUED
             and self.started_at is None
         ):
-            self.started_at = datetime.now(timezone.utc)
-        
+            self.started_at = datetime.now(UTC)
+
         # Update metadata if provided
         if metadata:
             if self.check_metadata is None:
@@ -144,24 +152,24 @@ class CheckRun(BaseModel):
         """Check if this is a failure that can be automatically fixed."""
         if not self.is_failed:
             return False
-        
+
         # Define patterns that indicate actionable failures
-        actionable_patterns = [
-            "lint", "format", "style", "test", "build", "compile"
-        ]
-        
+        actionable_patterns = ["lint", "format", "style", "test", "build", "compile"]
+
         check_name_lower = self.check_name.lower()
         return any(pattern in check_name_lower for pattern in actionable_patterns)
 
-    def get_failure_category(self) -> Optional[str]:
+    def get_failure_category(self) -> str | None:
         """Categorize the type of failure for routing to appropriate handlers."""
         if not self.is_failed:
             return None
-        
+
         check_name_lower = self.check_name.lower()
-        
+
         # Categorize based on check name patterns
-        if any(word in check_name_lower for word in ["lint", "eslint", "flake8", "ruff"]):
+        if any(
+            word in check_name_lower for word in ["lint", "eslint", "flake8", "ruff"]
+        ):
             return "lint"
         elif any(word in check_name_lower for word in ["format", "prettier", "black"]):
             return "format"
@@ -176,28 +184,35 @@ class CheckRun(BaseModel):
         else:
             return "other"
 
-    def extract_error_summary(self) -> Optional[str]:
+    def extract_error_summary(self) -> str | None:
         """Extract a concise error summary from output."""
         if not self.is_failed or not self.output_text:
             return None
-        
+
         # Try to extract key error information
-        lines = self.output_text.split('\n')
-        
+        lines = self.output_text.split("\n")
+
         # Look for common error patterns
         error_lines = []
         for line in lines:
             line = line.strip()
-            if any(keyword in line.lower() for keyword in ['error:', 'failed:', 'exception:']):
+            if any(
+                keyword in line.lower()
+                for keyword in ["error:", "failed:", "exception:"]
+            ):
                 error_lines.append(line)
-        
+
         if error_lines:
             # Return first few error lines, limited in length
-            summary = ' | '.join(error_lines[:3])
+            summary = " | ".join(error_lines[:3])
             return summary[:500] if len(summary) > 500 else summary
-        
+
         # Fallback to output summary if available
         if self.output_summary:
-            return self.output_summary[:200] if len(self.output_summary) > 200 else self.output_summary
-        
+            return (
+                self.output_summary[:200]
+                if len(self.output_summary) > 200
+                else self.output_summary
+            )
+
         return "Check failed - see logs for details"

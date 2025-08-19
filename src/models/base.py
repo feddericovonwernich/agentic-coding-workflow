@@ -1,12 +1,11 @@
 """Base SQLAlchemy model with common functionality."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -21,14 +20,7 @@ class BaseModel(Base):
 
     __abstract__ = True
 
-    @declared_attr
-    def __tablename__(cls) -> str:
-        """Generate table name from class name."""
-        # Convert CamelCase to snake_case
-        import re
-
-        name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", cls.__name__)
-        return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
+    # Note: Each model should define its own __tablename__
 
     # Primary key
     id: Mapped[uuid.UUID] = mapped_column(

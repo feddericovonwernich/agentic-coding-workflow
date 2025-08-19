@@ -1,20 +1,15 @@
 """Abstract base repository with common CRUD operations."""
 
 import uuid
-from abc import ABC, abstractmethod
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase
 
 from src.models.base import BaseModel
 
-# Type variable for the model type
-ModelType = TypeVar("ModelType", bound=BaseModel)
 
-
-class BaseRepository(ABC, Generic[ModelType]):
+class BaseRepository[ModelType: BaseModel]:
     """Abstract base repository with common CRUD operations."""
 
     def __init__(self, session: AsyncSession, model_class: type[ModelType]):
@@ -30,7 +25,7 @@ class BaseRepository(ABC, Generic[ModelType]):
         await self.session.refresh(entity)
         return entity
 
-    async def get_by_id(self, entity_id: uuid.UUID) -> Optional[ModelType]:
+    async def get_by_id(self, entity_id: uuid.UUID) -> ModelType | None:
         """Get entity by ID."""
         return await self.session.get(self.model_class, entity_id)
 
@@ -38,7 +33,9 @@ class BaseRepository(ABC, Generic[ModelType]):
         """Get entity by ID or raise exception if not found."""
         entity = await self.get_by_id(entity_id)
         if entity is None:
-            raise ValueError(f"{self.model_class.__name__} with id {entity_id} not found")
+            raise ValueError(
+                f"{self.model_class.__name__} with id {entity_id} not found"
+            )
         return entity
 
     async def update(self, entity: ModelType, **kwargs: Any) -> ModelType:
@@ -46,7 +43,7 @@ class BaseRepository(ABC, Generic[ModelType]):
         for key, value in kwargs.items():
             if hasattr(entity, key):
                 setattr(entity, key, value)
-        
+
         await self.session.flush()
         await self.session.refresh(entity)
         return entity
@@ -61,24 +58,22 @@ class BaseRepository(ABC, Generic[ModelType]):
         entity = await self.get_by_id(entity_id)
         if entity is None:
             return False
-        
+
         await self.delete(entity)
         return True
 
     async def list_all(
-        self, 
-        limit: Optional[int] = None, 
-        offset: Optional[int] = None
+        self, limit: int | None = None, offset: int | None = None
     ) -> list[ModelType]:
         """List all entities with optional pagination."""
         query = select(self.model_class)
-        
+
         if offset is not None:
             query = query.offset(offset)
-        
+
         if limit is not None:
             query = query.limit(limit)
-        
+
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
@@ -104,9 +99,8 @@ class BaseRepository(ABC, Generic[ModelType]):
         return list(result.scalars().all())
 
     async def _execute_single_query(
-        self, 
-        query: Select[tuple[ModelType]]
-    ) -> Optional[ModelType]:
+        self, query: Select[tuple[ModelType]]
+    ) -> ModelType | None:
         """Execute query and return single result."""
         result = await self.session.execute(query)
         return result.scalar_one_or_none()

@@ -1,7 +1,10 @@
 """AnalysisResult SQLAlchemy model."""
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from . import CheckRun, FixAttempt, PullRequest
 
 from sqlalchemy import Float, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -23,9 +26,11 @@ class AnalysisResult(BaseModel):
     # Analysis results
     category: Mapped[str] = mapped_column(String(100), nullable=False)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
-    root_cause: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    recommended_action: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    analysis_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    root_cause: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recommended_action: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    analysis_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Relationships
     check_run: Mapped["CheckRun"] = relationship(
@@ -42,4 +47,7 @@ class AnalysisResult(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<AnalysisResult(id={self.id}, category={self.category}, confidence={self.confidence_score})>"
+        return (
+            f"<AnalysisResult(id={self.id}, category={self.category}, "
+            f"confidence={self.confidence_score})>"
+        )

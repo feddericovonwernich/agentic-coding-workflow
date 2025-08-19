@@ -1,7 +1,10 @@
 """PRStateHistory SQLAlchemy model."""
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from . import PullRequest
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -22,13 +25,15 @@ class PRStateHistory(BaseModel):
     )
 
     # State transition information
-    old_state: Mapped[Optional[PRState]] = mapped_column(nullable=True)
+    old_state: Mapped[PRState | None] = mapped_column(nullable=True)
     new_state: Mapped[PRState] = mapped_column(nullable=False)
     trigger_event: Mapped[TriggerEvent] = mapped_column(nullable=False)
 
     # Context and metadata
-    triggered_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    history_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    triggered_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    history_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Relationships
     pull_request: Mapped["PullRequest"] = relationship(
@@ -37,7 +42,10 @@ class PRStateHistory(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<PRStateHistory(id={self.id}, pr_id={self.pr_id}, {self.old_state}->{self.new_state})>"
+        return (
+            f"<PRStateHistory(id={self.id}, pr_id={self.pr_id}, "
+            f"{self.old_state}->{self.new_state})>"
+        )
 
     @property
     def is_initial_state(self) -> bool:
@@ -47,18 +55,12 @@ class PRStateHistory(BaseModel):
     @property
     def is_reopening(self) -> bool:
         """Check if this represents a PR reopening."""
-        return (
-            self.old_state == PRState.CLOSED 
-            and self.new_state == PRState.OPENED
-        )
+        return self.old_state == PRState.CLOSED and self.new_state == PRState.OPENED
 
     @property
     def is_closing(self) -> bool:
         """Check if this represents a PR closing."""
-        return (
-            self.old_state == PRState.OPENED 
-            and self.new_state == PRState.CLOSED
-        )
+        return self.old_state == PRState.OPENED and self.new_state == PRState.CLOSED
 
     @property
     def is_merging(self) -> bool:
@@ -69,18 +71,21 @@ class PRStateHistory(BaseModel):
         """Get human-readable description of the state transition."""
         if self.is_initial_state:
             return f"PR opened as {self.new_state.value}"
-        
-        transition_descriptions = {
-            (PRState.OPENED, PRState.CLOSED): "PR was closed",
-            (PRState.OPENED, PRState.MERGED): "PR was merged",
-            (PRState.CLOSED, PRState.OPENED): "PR was reopened",
-        }
-        
-        key = (self.old_state, self.new_state)
-        return transition_descriptions.get(
-            key, 
-            f"PR state changed from {self.old_state.value} to {self.new_state.value}"
-        )
+
+        if self.old_state is not None:
+            if self.old_state == PRState.OPENED and self.new_state == PRState.CLOSED:
+                return "PR was closed"
+            elif self.old_state == PRState.OPENED and self.new_state == PRState.MERGED:
+                return "PR was merged"
+            elif self.old_state == PRState.CLOSED and self.new_state == PRState.OPENED:
+                return "PR was reopened"
+            else:
+                return (
+                    f"PR state changed from {self.old_state.value} "
+                    f"to {self.new_state.value}"
+                )
+        else:
+            return f"PR opened as {self.new_state.value}"
 
     def add_context(self, key: str, value: Any) -> None:
         """Add context information to metadata."""
@@ -98,11 +103,11 @@ class PRStateHistory(BaseModel):
     def create_transition(
         cls,
         pr_id: uuid.UUID,
-        old_state: Optional[PRState],
+        old_state: PRState | None,
         new_state: PRState,
         trigger_event: TriggerEvent,
-        triggered_by: Optional[str] = None,
-        metadata: Optional[dict[str, Any]] = None
+        triggered_by: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "PRStateHistory":
         """Create a new state transition record."""
         return cls(
@@ -111,5 +116,5 @@ class PRStateHistory(BaseModel):
             new_state=new_state,
             trigger_event=trigger_event,
             triggered_by=triggered_by,
-            history_metadata=metadata or {}
+            history_metadata=metadata or {},
         )

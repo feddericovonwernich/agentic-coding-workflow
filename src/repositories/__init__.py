@@ -8,8 +8,8 @@ from .state_history import PRStateHistoryRepository
 
 __all__ = [
     "BaseRepository",
-    "PullRequestRepository",
-    "CheckRunRepository", 
-    "RepositoryRepository",
+    "CheckRunRepository",
     "PRStateHistoryRepository",
+    "PullRequestRepository",
+    "RepositoryRepository",
 ]

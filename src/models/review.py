@@ -2,7 +2,10 @@
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from . import PullRequest
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -24,15 +27,17 @@ class Review(BaseModel):
     # Review details
     reviewer_type: Mapped[str] = mapped_column(String(50), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
-    decision: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    feedback: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    review_metadata: Mapped[Optional[dict[str, Any]]] = mapped_column("metadata", JSONB, nullable=True)
+    decision: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    review_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Timing information
-    started_at: Mapped[Optional[datetime]] = mapped_column(
+    started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
+    completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
@@ -43,4 +48,7 @@ class Review(BaseModel):
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return f"<Review(id={self.id}, pr_id={self.pr_id}, reviewer_type={self.reviewer_type})>"
+        return (
+            f"<Review(id={self.id}, pr_id={self.pr_id}, "
+            f"reviewer_type={self.reviewer_type})>"
+        )
