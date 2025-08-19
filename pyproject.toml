@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -24,7 +24,7 @@ extend-exclude = '''
 '''
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 88
 extend-exclude = ["migrations"]
 
@@ -59,7 +59,7 @@ known-first-party = ["src"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -79,7 +79,8 @@ module = [
     "testcontainers.*",
     "alembic.*",
     "psycopg2.*",
-    "asyncpg.*"
+    "asyncpg.*",
+    "redis.*"
 ]
 ignore_missing_imports = true
 
