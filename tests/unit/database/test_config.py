@@ -13,6 +13,7 @@ Available fixtures from conftest.py:
 """
 
 import os
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,7 +30,7 @@ from src.database.config import (
 class TestDatabasePoolConfig:
     """Test database pool configuration."""
 
-    def test_default_pool_config(self):
+    def test_default_pool_config(self) -> None:
         """
         Why: Ensure pool configuration has reasonable defaults for production use
         What: Tests that DatabasePoolConfig initializes with expected default values
@@ -43,7 +44,7 @@ class TestDatabasePoolConfig:
         assert pool_config.pool_recycle == 3600
         assert pool_config.pool_pre_ping is True
 
-    def test_custom_pool_config(self):
+    def test_custom_pool_config(self) -> None:
         """
         Why: Verify pool configuration accepts custom values for optimization
         What: Tests DatabasePoolConfig initialization with custom values
@@ -64,7 +65,7 @@ class TestDatabasePoolConfig:
         assert pool_config.pool_recycle == 7200
         assert pool_config.pool_pre_ping is False
 
-    def test_pool_config_accepts_valid_values(self):
+    def test_pool_config_accepts_valid_values(self) -> None:
         """
         Why: Ensure pool configuration accepts valid integer values
         What: Tests that DatabasePoolConfig accepts reasonable positive values
@@ -86,7 +87,7 @@ class TestDatabasePoolConfig:
 class TestDatabaseConfig:
     """Test database configuration and URL construction."""
 
-    def test_database_config_from_components(self):
+    def test_database_config_from_components(self) -> None:
         """
         Why: Test that database configuration builds URLs correctly from components
         What: Tests DatabaseConfig URL construction from host, port, database, etc.
@@ -103,7 +104,7 @@ class TestDatabaseConfig:
         expected_url = "postgresql+asyncpg://testuser:testpass@testhost:5433/testdb"
         assert config.database_url == expected_url
 
-    def test_database_config_from_url(self):
+    def test_database_config_from_url(self) -> None:
         """
         Why: Test that database configuration prioritizes explicit
              database_url over components
@@ -123,7 +124,7 @@ class TestDatabaseConfig:
 
         assert config.database_url == explicit_url
 
-    def test_alembic_url_conversion(self):
+    def test_alembic_url_conversion(self) -> None:
         """
         Why: Ensure Alembic gets sync URL since it doesn't support async drivers
         What: Tests that get_alembic_url() returns URL without +asyncpg driver
@@ -141,7 +142,7 @@ class TestDatabaseConfig:
         assert alembic_url.startswith("postgresql://")
         assert "+asyncpg" not in alembic_url
 
-    def test_password_validation(self):
+    def test_password_validation(self) -> None:
         """
         Why: Ensure database configuration can be created without password
              when database_url is not needed
@@ -172,7 +173,7 @@ class TestDatabaseConfig:
             "DATABASE_PASSWORD": "env_pass",
         },
     )
-    def test_environment_variable_substitution(self):
+    def test_environment_variable_substitution(self) -> None:
         """
         Why: Test that configuration reads from environment variables when
              components not provided
@@ -192,7 +193,7 @@ class TestDatabaseConfig:
         os.environ,
         {"DATABASE_DATABASE_URL": "postgresql+asyncpg://env:url@host:5432/envdb"},
     )
-    def test_database_url_from_environment_automatic(self):
+    def test_database_url_from_environment_automatic(self) -> None:
         """
         Why: Test that DATABASE_URL environment variable is automatically
              read by DatabaseConfig
@@ -213,7 +214,7 @@ class TestDatabaseConfig:
         # Password should be None since we're using DATABASE_URL
         assert config.password is None
 
-    def test_ssl_configuration_field_exists(self):
+    def test_ssl_configuration_field_exists(self) -> None:
         """
         Why: Test that SSL configuration field can be set for future URL enhancement
         What: Tests that ssl_mode field is properly stored in configuration
@@ -230,7 +231,7 @@ class TestDatabaseConfig:
 
         assert config.ssl_mode == "require"
 
-    def test_pool_configuration_integration(self):
+    def test_pool_configuration_integration(self) -> None:
         """
         Why: Test that pool configuration is properly integrated with
              database configuration
@@ -254,7 +255,7 @@ class TestDatabaseConfig:
 class TestDatabaseConfigGlobalFunctions:
     """Test global configuration functions."""
 
-    def test_get_database_config_singleton(self):
+    def test_get_database_config_singleton(self) -> None:
         """
         Why: Ensure get_database_config returns same instance to avoid
              duplicate initialization
@@ -269,7 +270,7 @@ class TestDatabaseConfigGlobalFunctions:
 
         assert config1 is config2
 
-    def test_reset_database_config(self):
+    def test_reset_database_config(self) -> None:
         """
         Why: Ensure reset function clears singleton for testing and reinitialization
         What: Tests that reset_database_config clears the singleton instance
@@ -284,7 +285,7 @@ class TestDatabaseConfigGlobalFunctions:
     @patch.dict(
         os.environ, {"DATABASE_HOST": "global_host", "DATABASE_PASSWORD": "global_pass"}
     )
-    def test_global_config_uses_environment(self):
+    def test_global_config_uses_environment(self) -> None:
         """
         Why: Test that global configuration function uses environment variables
         What: Tests get_database_config reads from environment when called
@@ -298,7 +299,7 @@ class TestDatabaseConfigGlobalFunctions:
         assert config.password == "global_pass"
 
     @patch("src.database.config.DatabaseConfig")
-    def test_config_initialization_error_handling(self, mock_config_class):
+    def test_config_initialization_error_handling(self, mock_config_class: Any) -> None:
         """
         Why: Ensure graceful handling of configuration initialization failures
         What: Tests that configuration errors are properly raised and not
@@ -314,7 +315,7 @@ class TestDatabaseConfigGlobalFunctions:
         with pytest.raises(ValidationError):
             get_database_config()
 
-    def test_config_caching_behavior(self):
+    def test_config_caching_behavior(self) -> None:
         """
         Why: Verify that configuration caching works correctly to avoid
              repeated initialization

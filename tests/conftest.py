@@ -8,6 +8,10 @@ for both unit and integration tests.
 import asyncio
 import os
 from collections.abc import Generator
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    pass
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -34,7 +38,7 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 
 
 @pytest.fixture
-def mock_database_config():
+def mock_database_config() -> MagicMock:
     """
     Mock database configuration for unit tests.
 
@@ -66,7 +70,7 @@ def mock_database_config():
 
 
 @pytest.fixture
-def mock_async_session():
+def mock_async_session() -> AsyncMock:
     """
     Mock async database session for unit tests.
 
@@ -85,7 +89,7 @@ def mock_async_session():
 
 
 @pytest.fixture
-def mock_connection_manager(mock_async_session):
+def mock_connection_manager(mock_async_session: AsyncMock) -> MagicMock:
     """
     Mock database connection manager for unit tests.
 
@@ -113,7 +117,7 @@ def mock_connection_manager(mock_async_session):
 
 
 @pytest.fixture
-def test_env_vars():
+def test_env_vars() -> Generator[dict[str, str], None, None]:
     """
     Set up test environment variables.
 
@@ -135,7 +139,7 @@ def test_env_vars():
 
 
 @pytest_asyncio.fixture
-async def mock_database_engine():
+async def mock_database_engine() -> AsyncMock:
     """
     Mock async database engine for integration tests.
 
@@ -165,7 +169,7 @@ async def mock_database_engine():
 
 
 @pytest.fixture
-def sample_health_check_results():
+def sample_health_check_results() -> dict[str, Any]:
     """
     Sample health check results for testing.
 
@@ -209,7 +213,7 @@ def sample_health_check_results():
     }
 
 
-class AsyncContextManager:
+class MockAsyncContextManager:
     """
     Helper class for testing async context managers.
 
@@ -218,19 +222,19 @@ class AsyncContextManager:
     How: Uses provided enter and exit callables or default behavior
     """
 
-    def __init__(self, enter_result=None, exit_result=None):
+    def __init__(self, enter_result: Any = None, exit_result: Any = None) -> None:
         self.enter_result = enter_result
         self.exit_result = exit_result
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Any:
         return self.enter_result
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> Any:
         return self.exit_result
 
 
 @pytest.fixture
-def async_context_manager_factory():
+def async_context_manager_factory() -> type[MockAsyncContextManager]:
     """
     Factory for creating async context managers in tests.
 
@@ -238,4 +242,4 @@ def async_context_manager_factory():
     What: Returns a factory function for creating AsyncContextManager instances
     How: Uses the AsyncContextManager helper class
     """
-    return AsyncContextManager
+    return MockAsyncContextManager
