@@ -260,15 +260,6 @@ class ConfigurationValidator:
                 "may produce inconsistent results for code analysis"
             )
 
-        # Cost tracking validation
-        if (
-            provider.cost_per_1k_input_tokens is None
-            or provider.cost_per_1k_output_tokens is None
-        ):
-            self.warnings.append(
-                f"LLM provider '{name}' missing cost information. "
-                "Cost tracking will be unavailable."
-            )
 
     def _validate_notification_configs(self) -> None:
         """Validate notification system configuration."""

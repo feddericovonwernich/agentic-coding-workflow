@@ -294,13 +294,6 @@ class LLMProviderConfig(BaseConfigModel):
         default=None, ge=1, description="Rate limit in requests per minute"
     )
 
-    cost_per_1k_input_tokens: float | None = Field(
-        default=None, ge=0.0, description="Cost per 1000 input tokens in USD"
-    )
-
-    cost_per_1k_output_tokens: float | None = Field(
-        default=None, ge=0.0, description="Cost per 1000 output tokens in USD"
-    )
 
     @field_validator("api_key")
     @classmethod

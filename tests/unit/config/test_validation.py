@@ -472,38 +472,6 @@ class TestLLMConfigValidation:
         warning_found = any("very high max_tokens" in warning for warning in warnings)
         assert warning_found
 
-    def test_llm_config_validates_missing_cost_tracking(self):
-        """
-        Why: Warn when cost tracking information is missing for budget monitoring
-        What: Tests that missing cost information generates warnings
-        How: Creates LLM config without cost fields and verifies warning
-        """
-        llm_config = LLMProviderConfig(
-            provider=LLMProvider.ANTHROPIC,
-            api_key="sk-ant-test",
-            model="claude-3-sonnet-20240229",
-            # cost fields omitted
-        )
-        config_data = {
-            "database": {"url": "sqlite:///:memory:"},
-            "queue": {"url": "redis://localhost:6379/0"},
-            "llm": {"anthropic": llm_config.model_dump()},
-            "repositories": [
-                {"url": "https://github.com/test/repo", "auth_token": "test-token"}
-            ],
-        }
-        config = Config(**config_data)
-        validator = ConfigurationValidator(config)
-
-        errors, warnings = validator.validate_all(
-            check_connectivity=False, check_dependencies=False, check_permissions=False
-        )
-
-        # Should generate warning about missing cost information
-        warning_found = any(
-            "missing cost information" in warning for warning in warnings
-        )
-        assert warning_found
 
 
 class TestNotificationConfigValidation:

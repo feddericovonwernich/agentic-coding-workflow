@@ -328,8 +328,6 @@ class TestLLMProviderConfig:
         assert config.temperature == 0.1
         assert config.timeout == 60
         assert config.rate_limit_rpm is None
-        assert config.cost_per_1k_input_tokens is None
-        assert config.cost_per_1k_output_tokens is None
 
     def test_llm_provider_config_strips_whitespace_from_api_key(self):
         """

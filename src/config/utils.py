@@ -98,8 +98,6 @@ def generate_example_config(
                 "temperature": 0.1,
                 "timeout": 60,
                 "rate_limit_rpm": 1000,
-                "cost_per_1k_input_tokens": 0.003,
-                "cost_per_1k_output_tokens": 0.015,
             },
             "openai": {
                 "provider": "openai",
@@ -111,8 +109,6 @@ def generate_example_config(
                 "temperature": 0.1,
                 "timeout": 60,
                 "rate_limit_rpm": 3000,
-                "cost_per_1k_input_tokens": 0.03,
-                "cost_per_1k_output_tokens": 0.06,
             },
         },
         "default_llm_provider": "anthropic",
