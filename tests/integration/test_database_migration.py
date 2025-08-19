@@ -16,7 +16,6 @@ import asyncio
 import contextlib
 import os
 import subprocess
-import tempfile
 import uuid
 from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
@@ -57,70 +56,18 @@ class TestDatabaseMigration:
 
     @pytest.fixture(scope="class")
     def alembic_config(self, sync_database_url: str) -> Generator[Config, None, None]:
-        """Create Alembic configuration for testing."""
-        # Get absolute path to alembic directory
-
+        """Create Alembic configuration for testing using project alembic.ini."""
+        # Get path to project root alembic.ini
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        alembic_path = os.path.join(project_root, "alembic")
+        alembic_ini_path = os.path.join(project_root, "alembic.ini")
 
-        # Create temporary alembic.ini for testing
-        template_fmt = (
-            "%%(year)d%%(month).2d%%(day).2d_%%(hour).2d%%(minute).2d_"
-            "%%(rev)s_%%(slug)s"
-        )
-        config_content = f"""
-[alembic]
-script_location = {alembic_path}
-file_template = {template_fmt}
-timezone = UTC
-version_locations = {alembic_path}/versions
-version_path_separator = os
-sqlalchemy.url = {sync_database_url}
+        # Load the existing alembic.ini
+        config = Config(alembic_ini_path)
 
-[loggers]
-keys = root,sqlalchemy,alembic
+        # Override the database URL for testing
+        config.set_main_option("sqlalchemy.url", sync_database_url)
 
-[handlers]
-keys = console
-
-[formatters]
-keys = generic
-
-[logger_root]
-level = WARN
-handlers = console
-qualname =
-
-[logger_sqlalchemy]
-level = WARN
-handlers =
-qualname = sqlalchemy.engine
-
-[logger_alembic]
-level = INFO
-handlers =
-qualname = alembic
-
-[handler_console]
-class = StreamHandler
-args = (sys.stderr,)
-level = NOTSET
-formatter = generic
-
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
-datefmt = %H:%M:%S
-"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
-            f.write(config_content)
-            config_path = f.name
-
-        try:
-            config = Config(config_path)
-            yield config
-        finally:
-            os.unlink(config_path)
+        yield config
 
     @pytest.fixture(scope="class")
     async def engine(self, database_url: str) -> AsyncGenerator[AsyncEngine, None]:
@@ -744,91 +691,37 @@ datefmt = %H:%M:%S
             "postgresql+psycopg2://", "postgresql+asyncpg://"
         )
 
-        # Get absolute path to alembic directory
-
+        # Use existing alembic.ini from project root
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        alembic_path = os.path.join(project_root, "alembic")
+        alembic_ini_path = os.path.join(project_root, "alembic.ini")
 
-        # Create alembic config
-        template_fmt = (
-            "%%(year)d%%(month).2d%%(day).2d_%%(hour).2d%%(minute).2d_"
-            "%%(rev)s_%%(slug)s"
-        )
-        config_content = f"""
-[alembic]
-script_location = {alembic_path}
-file_template = {template_fmt}
-timezone = UTC
-version_locations = {alembic_path}/versions
-version_path_separator = os
-sqlalchemy.url = {sync_database_url}
+        # Load existing alembic.ini and override database URL
+        alembic_config = Config(alembic_ini_path)
+        alembic_config.set_main_option("sqlalchemy.url", sync_database_url)
 
-[loggers]
-keys = root,sqlalchemy,alembic
-
-[handlers]
-keys = console
-
-[formatters]
-keys = generic
-
-[logger_root]
-level = WARN
-handlers = console
-qualname =
-
-[logger_sqlalchemy]
-level = WARN
-handlers =
-qualname = sqlalchemy.engine
-
-[logger_alembic]
-level = INFO
-handlers =
-qualname = alembic
-
-[handler_console]
-class = StreamHandler
-args = (sys.stderr,)
-level = NOTSET
-formatter = generic
-
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
-datefmt = %H:%M:%S
-"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
-            f.write(config_content)
-            config_path = f.name
+        engine = create_async_engine(database_url, echo=False)
 
         try:
-            alembic_config = Config(config_path)
-            engine = create_async_engine(database_url, echo=False)
+            # Run the full test sequence
+            await self.test_migration_upgrade(alembic_config)
+            await self.test_schema_structure(engine)
+            await self.test_enum_types(engine)
+            await self.test_indexes_created(engine)
+            await self.test_foreign_key_constraints(engine)
+            await self.test_triggers_created(engine)
 
-            try:
-                # Run the full test sequence
-                await self.test_migration_upgrade(alembic_config)
-                await self.test_schema_structure(engine)
-                await self.test_enum_types(engine)
-                await self.test_indexes_created(engine)
-                await self.test_foreign_key_constraints(engine)
-                await self.test_triggers_created(engine)
+            session_factory = async_sessionmaker(
+                engine, class_=AsyncSession, expire_on_commit=False
+            )
+            await self.test_data_insertion_and_triggers(session_factory)
+            await self.test_unique_constraints(session_factory)
+            await self._test_performance_requirements_with_unique_data(
+                session_factory, test_instance_id
+            )
 
-                session_factory = async_sessionmaker(
-                    engine, class_=AsyncSession, expire_on_commit=False
-                )
-                await self.test_data_insertion_and_triggers(session_factory)
-                await self.test_unique_constraints(session_factory)
-                await self._test_performance_requirements_with_unique_data(
-                    session_factory, test_instance_id
-                )
+            await self.test_migration_rollback(alembic_config)
+            await self.test_schema_after_rollback(engine)
+            await self.test_migration_reapply(alembic_config)
 
-                await self.test_migration_rollback(alembic_config)
-                await self.test_schema_after_rollback(engine)
-                await self.test_migration_reapply(alembic_config)
-
-            finally:
-                await engine.dispose()
         finally:
-            os.unlink(config_path)
+            await engine.dispose()
