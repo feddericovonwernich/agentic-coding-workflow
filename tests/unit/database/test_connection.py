@@ -26,7 +26,7 @@ class TestDatabaseRetry:
     """Test database retry mechanism."""
 
     @pytest.mark.asyncio
-    async def test_successful_operation_no_retry(self):
+    async def test_successful_operation_no_retry(self) -> None:
         """
         Why: Ensure operations that succeed on first try don't trigger retry logic
         What: Tests that DatabaseRetry executes operation once when it succeeds
@@ -42,7 +42,7 @@ class TestDatabaseRetry:
         operation.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_retry_on_sqlalchemy_error(self):
+    async def test_retry_on_sqlalchemy_error(self) -> None:
         """
         Why: Test that transient database errors trigger retry mechanism
         What: Tests DatabaseRetry retries operations that fail with SQLAlchemyError
@@ -64,7 +64,7 @@ class TestDatabaseRetry:
         assert operation.call_count == 3
 
     @pytest.mark.asyncio
-    async def test_max_attempts_exceeded(self):
+    async def test_max_attempts_exceeded(self) -> None:
         """
         Why: Ensure retry mechanism eventually gives up to prevent infinite loops
         What: Tests that DatabaseRetry raises exception after max_attempts reached
@@ -79,7 +79,7 @@ class TestDatabaseRetry:
         assert operation.call_count == 2  # max_retries=1 means 2 total attempts
 
     @pytest.mark.asyncio
-    async def test_non_retryable_error_not_retried(self):
+    async def test_non_retryable_error_not_retried(self) -> None:
         """
         Why: Ensure non-transient errors fail immediately without retries
         What: Tests that ValueError and other non-SQLAlchemy errors
@@ -94,7 +94,7 @@ class TestDatabaseRetry:
         operation.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_exponential_backoff_timing(self):
+    async def test_exponential_backoff_timing(self) -> None:
         """
         Why: Verify retry delays increase exponentially to reduce database load
         What: Tests that DatabaseRetry implements exponential backoff between attempts

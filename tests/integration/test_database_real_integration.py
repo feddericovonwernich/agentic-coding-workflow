@@ -10,6 +10,8 @@ Requirements:
 """
 
 import asyncio
+from collections.abc import AsyncGenerator, Generator
+from typing import Any, Optional
 
 import pytest
 import pytest_asyncio
@@ -29,7 +31,7 @@ from src.database.health import (
 
 
 @pytest.fixture(scope="module")
-def postgres_container():
+def postgres_container() -> Generator[PostgresContainer, None, None]:
     """
     Spin up a real PostgreSQL database in a Docker container.
 
@@ -49,7 +51,7 @@ def postgres_container():
 
 
 @pytest.fixture
-def real_database_config(postgres_container):
+def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfig:
     """
     Create a DatabaseConfig that points to the real test database.
 
@@ -88,7 +90,9 @@ def real_database_config(postgres_container):
 
 
 @pytest_asyncio.fixture
-async def real_connection_manager(real_database_config):
+async def real_connection_manager(
+    real_database_config: DatabaseConfig,
+) -> AsyncGenerator[DatabaseConnectionManager, None]:
     """
     Create a DatabaseConnectionManager connected to the real test database.
 
@@ -107,7 +111,9 @@ class TestRealDatabaseConnection:
     """Test actual database connectivity with a real PostgreSQL instance."""
 
     @pytest.mark.asyncio
-    async def test_real_database_connection(self, real_connection_manager):
+    async def test_real_database_connection(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify we can actually connect to a real PostgreSQL database
         What: Tests basic connectivity by executing a simple query
@@ -120,7 +126,9 @@ class TestRealDatabaseConnection:
             assert value == 1
 
     @pytest.mark.asyncio
-    async def test_real_database_version_check(self, real_connection_manager):
+    async def test_real_database_version_check(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify we can query database metadata from real PostgreSQL
         What: Tests ability to retrieve PostgreSQL version information
@@ -135,7 +143,9 @@ class TestRealDatabaseConnection:
             assert "15" in version  # We're using postgres:15-alpine
 
     @pytest.mark.asyncio
-    async def test_real_database_table_operations(self, real_connection_manager):
+    async def test_real_database_table_operations(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify we can perform DDL and DML operations on real database
         What: Tests CREATE TABLE, INSERT, SELECT, and DROP operations
@@ -182,7 +192,9 @@ class TestRealDatabaseConnection:
             await session.commit()
 
     @pytest.mark.asyncio
-    async def test_real_database_transaction_rollback(self, real_connection_manager):
+    async def test_real_database_transaction_rollback(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify transaction rollback works correctly with real database
         What: Tests that rolled back transactions don't persist data
@@ -229,7 +241,9 @@ class TestRealDatabaseConnection:
             await session.commit()
 
     @pytest.mark.asyncio
-    async def test_real_database_concurrent_sessions(self, real_connection_manager):
+    async def test_real_database_concurrent_sessions(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify connection pooling works with real database connections
         What: Tests multiple concurrent database sessions
@@ -237,7 +251,7 @@ class TestRealDatabaseConnection:
              concurrently, validating the connection pool handles them properly
         """
 
-        async def execute_query(session_id: int):
+        async def execute_query(session_id: int) -> int:
             async with real_connection_manager.get_session() as session:
                 result = await session.execute(
                     text(
@@ -246,7 +260,7 @@ class TestRealDatabaseConnection:
                     {"id": session_id},
                 )
                 row = result.fetchone()
-                return row[0]  # Return session_id
+                return int(row[0]) if row else 0  # Return session_id
 
         # Run 10 concurrent queries
         tasks = [execute_query(i) for i in range(10)]
@@ -263,7 +277,9 @@ class TestRealDatabaseHealth:
     """Test health monitoring with a real PostgreSQL instance."""
 
     @pytest.mark.asyncio
-    async def test_real_health_check_connectivity(self, real_connection_manager):
+    async def test_real_health_check_connectivity(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify health checks work against real database
         What: Tests connectivity health check returns HEALTHY
@@ -276,10 +292,13 @@ class TestRealDatabaseHealth:
         assert result.status == HealthStatus.HEALTHY
         assert result.error is None
         assert result.duration_ms > 0
+        assert result.details is not None
         assert "Connected successfully" in result.details["response"]
 
     @pytest.mark.asyncio
-    async def test_real_health_check_write_permissions(self, real_connection_manager):
+    async def test_real_health_check_write_permissions(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify write permission checks work with real database
         What: Tests ability to create, write, and drop tables
@@ -291,12 +310,15 @@ class TestRealDatabaseHealth:
 
         assert result.status == HealthStatus.HEALTHY
         assert result.error is None
+        assert result.details is not None
         assert "create" in result.details["operations"]
         assert "insert" in result.details["operations"]
         assert "drop" in result.details["operations"]
 
     @pytest.mark.asyncio
-    async def test_real_health_check_response_time(self, real_connection_manager):
+    async def test_real_health_check_response_time(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify response time checks work with real database latency
         What: Tests database response time measurement
@@ -308,10 +330,13 @@ class TestRealDatabaseHealth:
 
         assert result.status == HealthStatus.HEALTHY
         assert result.duration_ms < 5000  # Should be well under 5 seconds
+        assert result.details is not None
         assert "table_count" in result.details
 
     @pytest.mark.asyncio
-    async def test_real_comprehensive_health_check(self, real_connection_manager):
+    async def test_real_comprehensive_health_check(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify all health checks work together against real database
         What: Tests comprehensive health check suite
@@ -343,7 +368,9 @@ class TestRealDatabasePooling:
     """Test connection pooling behavior with real database."""
 
     @pytest.mark.asyncio
-    async def test_real_connection_pool_limits(self, real_database_config):
+    async def test_real_connection_pool_limits(
+        self, real_database_config: DatabaseConfig
+    ) -> None:
         """
         Why: Verify connection pool can handle multiple concurrent connections
         What: Tests that multiple concurrent connections work properly
@@ -359,12 +386,12 @@ class TestRealDatabasePooling:
 
         try:
             # Test concurrent database operations
-            async def test_query(query_id: int):
+            async def test_query(query_id: int) -> int:
                 async with manager.get_session() as session:
                     result = await session.execute(
                         text("SELECT CAST(:id AS INTEGER) as test_id"), {"id": query_id}
                     )
-                    return result.scalar()
+                    return result.scalar() or 0
 
             # Run multiple concurrent queries
             tasks = [test_query(i) for i in range(5)]
@@ -377,7 +404,9 @@ class TestRealDatabasePooling:
             await manager.close()
 
     @pytest.mark.asyncio
-    async def test_real_connection_pool_config(self, real_database_config):
+    async def test_real_connection_pool_config(
+        self, real_database_config: DatabaseConfig
+    ) -> None:
         """
         Why: Verify connection pool configuration is applied correctly
         What: Tests that pool configuration settings are respected
@@ -419,7 +448,9 @@ class TestRealDatabaseStress:
     """Stress tests with real database to validate stability."""
 
     @pytest.mark.asyncio
-    async def test_real_database_many_operations(self, real_connection_manager):
+    async def test_real_database_many_operations(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify system handles many sequential operations reliably
         What: Tests executing many database operations in sequence
@@ -435,7 +466,9 @@ class TestRealDatabaseStress:
                 assert value == i * 2
 
     @pytest.mark.asyncio
-    async def test_real_database_concurrent_stress(self, real_connection_manager):
+    async def test_real_database_concurrent_stress(
+        self, real_connection_manager: DatabaseConnectionManager
+    ) -> None:
         """
         Why: Verify system handles high concurrency with real database
         What: Tests many concurrent database operations
@@ -443,7 +476,7 @@ class TestRealDatabaseStress:
              and validates all complete successfully
         """
 
-        async def stress_query(query_id: int):
+        async def stress_query(query_id: int) -> tuple[int, int]:
             async with real_connection_manager.get_session() as session:
                 result = await session.execute(
                     text("""
@@ -455,7 +488,7 @@ class TestRealDatabaseStress:
                     {"id": query_id},
                 )
                 row = result.fetchone()
-                return row[0], row[1]
+                return (int(row[0]), int(row[1])) if row else (0, 0)
 
         # Run 50 concurrent queries
         tasks = [stress_query(i) for i in range(50)]
