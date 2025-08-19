@@ -260,7 +260,6 @@ class ConfigurationValidator:
                 "may produce inconsistent results for code analysis"
             )
 
-
     def _validate_notification_configs(self) -> None:
         """Validate notification system configuration."""
         notification = self.config.notification

@@ -294,7 +294,6 @@ class LLMProviderConfig(BaseConfigModel):
         default=None, ge=1, description="Rate limit in requests per minute"
     )
 
-
     @field_validator("api_key")
     @classmethod
     def validate_api_key(cls, v: str) -> str:

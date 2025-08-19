@@ -473,7 +473,6 @@ class TestLLMConfigValidation:
         assert warning_found
 
 
-
 class TestNotificationConfigValidation:
     """Tests for notification configuration validation."""
 
