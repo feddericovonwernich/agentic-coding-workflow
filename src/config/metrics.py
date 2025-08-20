@@ -87,10 +87,12 @@ class ConfigurationMetrics:
         self._counters: dict[str, int] = defaultdict(int)
         self._gauges: dict[str, float] = {}
         self._histograms: dict[str, list[float]] = defaultdict(list)
-        self._timers: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
+        self._timers: dict[str, deque[TimingMetric]] = defaultdict(
+            lambda: deque(maxlen=1000)
+        )
 
         # Event tracking
-        self._events: deque = deque(maxlen=10000)
+        self._events: deque[dict[str, Any]] = deque(maxlen=10000)
         self._event_counts: dict[ConfigurationEvent, int] = defaultdict(int)
 
         # Access pattern tracking
@@ -104,8 +106,8 @@ class ConfigurationMetrics:
         )
 
         # Performance tracking
-        self._load_times: deque = deque(maxlen=100)
-        self._validation_times: deque = deque(maxlen=100)
+        self._load_times: deque[float] = deque(maxlen=100)
+        self._validation_times: deque[float] = deque(maxlen=100)
         self._cache_performance: dict[str, Any] = {
             "total_requests": 0,
             "cache_hits": 0,
@@ -115,7 +117,7 @@ class ConfigurationMetrics:
 
         # Error tracking
         self._error_counts: dict[str, int] = defaultdict(int)
-        self._recent_errors: deque = deque(maxlen=100)
+        self._recent_errors: deque[dict[str, Any]] = deque(maxlen=100)
 
         # Health indicators
         self._health_status = "healthy"
@@ -334,7 +336,7 @@ class ConfigurationMetrics:
             Dictionary with timing statistics (min, max, avg, p95, etc.)
         """
         with self._lock:
-            timings = self._timers.get(operation, deque())
+            timings = self._timers.get(operation, deque(maxlen=1000))
 
             if not timings:
                 return {"count": 0}
@@ -535,7 +537,9 @@ def record_config_event(
     metrics.record_event(event, details, tags)
 
 
-def time_operation(operation_name: str) -> Callable:
+def time_operation(
+    operation_name: str,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to time configuration operations.
 
     Args:
@@ -545,7 +549,7 @@ def time_operation(operation_name: str) -> Callable:
         Decorator function
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
             success = True

@@ -45,7 +45,7 @@ class ConfigurationCache:
         self._warm_keys: set[str] = set()
 
         # Weak references for memory optimization
-        self._weak_cache: WeakValueDictionary = WeakValueDictionary()
+        self._weak_cache: WeakValueDictionary[str, Any] = WeakValueDictionary()
 
         # Cache statistics
         self._cache_hits = 0

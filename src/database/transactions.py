@@ -283,7 +283,7 @@ class UnitOfWork:
             session: Database session to use
         """
         self.session = session
-        self._operations: list[tuple[str, Any, dict]] = []
+        self._operations: list[tuple[str, Any, dict[str, Any]]] = []
         self._committed = False
 
     def add_operation(self, operation_type: str, entity: Any, **kwargs: Any) -> None:

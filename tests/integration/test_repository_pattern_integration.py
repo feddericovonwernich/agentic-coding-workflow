@@ -819,7 +819,7 @@ class TestComplexQueries:
         }
 
     async def test_prs_with_failed_checks_query(
-        self, database_session: AsyncSession, complex_test_data: dict
+        self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
         Why: Verify complex join queries work correctly with real database
@@ -837,7 +837,7 @@ class TestComplexQueries:
         assert complex_test_data["successful_pr"].id not in failed_pr_ids
 
     async def test_repository_statistics(
-        self, database_session: AsyncSession, complex_test_data: dict
+        self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
         Why: Verify statistics queries work correctly with real data
@@ -858,7 +858,7 @@ class TestComplexQueries:
         assert stats["draft"] == 0
 
     async def test_check_run_statistics(
-        self, database_session: AsyncSession, complex_test_data: dict
+        self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
         Why: Verify check run statistics work with real database
