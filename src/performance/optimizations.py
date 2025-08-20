@@ -19,10 +19,10 @@ class QueryOptimizer:
 
     @staticmethod
     def optimize_relationship_loading(
-        query: Select,
+        query: Select[Any],
         load_strategy: str = "selectin",
         relationships: list[str] | None = None,
-    ) -> Select:
+    ) -> Select[Any]:
         """Add optimized relationship loading to query.
 
         Args:
@@ -48,11 +48,11 @@ class QueryOptimizer:
 
     @staticmethod
     def add_pagination_optimization(
-        query: Select,
+        query: Select[Any],
         limit: int,
         offset: int = 0,
         order_by_id: bool = True,
-    ) -> Select:
+    ) -> Select[Any]:
         """Add optimized pagination to query."""
         if order_by_id:
             # Ensure consistent ordering for pagination
@@ -62,7 +62,7 @@ class QueryOptimizer:
         return query.offset(offset).limit(limit)
 
     @staticmethod
-    def optimize_count_query(query: Select) -> Select:
+    def optimize_count_query(query: Select[Any]) -> Select[Any]:
         """Optimize query for counting results."""
         # Remove unnecessary columns and ordering for count
         model = query.column_descriptions[0]["type"]
@@ -70,9 +70,9 @@ class QueryOptimizer:
 
     @staticmethod
     def add_index_hints(
-        query: Select,
+        query: Select[Any],
         hints: dict[str, str] | None = None,
-    ) -> Select:
+    ) -> Select[Any]:
         """Add database-specific index hints to query.
 
         Args:
@@ -89,12 +89,14 @@ class QueryOptimizer:
         model_class: type[BaseModel],
         ids: list[Any],
         batch_size: int = 100,
-    ) -> list[Select]:
+    ) -> list[Select[Any]]:
         """Create batched queries for loading entities by IDs."""
-        queries: list[Select] = []
+        queries: list[Select[Any]] = []
         for i in range(0, len(ids), batch_size):
             batch_ids = ids[i : i + batch_size]
-            query: Select = Select(model_class).where(model_class.id.in_(batch_ids))
+            query: Select[Any] = Select(model_class).where(
+                model_class.id.in_(batch_ids)
+            )
             queries.append(query)
         return queries
 
@@ -125,7 +127,7 @@ class PullRequestQueryOptimizer:
     """Specialized query optimizations for PullRequest queries."""
 
     @staticmethod
-    def optimize_pr_with_checks_query(base_query: Select) -> Select:
+    def optimize_pr_with_checks_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query that loads PRs with their check runs."""
         return base_query.options(
             selectinload(PullRequest.check_runs),
@@ -133,7 +135,7 @@ class PullRequestQueryOptimizer:
         )
 
     @staticmethod
-    def optimize_pr_with_history_query(base_query: Select) -> Select:
+    def optimize_pr_with_history_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query that loads PRs with state history."""
         return base_query.options(
             selectinload(PullRequest.state_history),
@@ -141,7 +143,7 @@ class PullRequestQueryOptimizer:
         )
 
     @staticmethod
-    def optimize_active_prs_query(base_query: Select) -> Select:
+    def optimize_active_prs_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query for active PRs with minimal data."""
         return base_query.options(
             selectinload(PullRequest.repository).load_only(
@@ -150,7 +152,7 @@ class PullRequestQueryOptimizer:
         )
 
     @staticmethod
-    def create_efficient_failed_checks_query(session: AsyncSession) -> Select:
+    def create_efficient_failed_checks_query(session: AsyncSession) -> Select[Any]:
         """Create optimized query for PRs with failed checks using joins."""
         return (
             Select(PullRequest)
@@ -173,14 +175,14 @@ class CheckRunQueryOptimizer:
     """Specialized query optimizations for CheckRun queries."""
 
     @staticmethod
-    def optimize_check_runs_with_pr_query(base_query: Select) -> Select:
+    def optimize_check_runs_with_pr_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query that loads check runs with PR data."""
         return base_query.options(
             selectinload(CheckRun.pull_request).selectinload(PullRequest.repository),
         )
 
     @staticmethod
-    def optimize_failed_checks_query(base_query: Select) -> Select:
+    def optimize_failed_checks_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query for failed check runs."""
         return base_query.where(
             and_(
@@ -198,7 +200,7 @@ class RepositoryQueryOptimizer:
     """Specialized query optimizations for Repository queries."""
 
     @staticmethod
-    def optimize_repositories_with_stats_query(base_query: Select) -> Select:
+    def optimize_repositories_with_stats_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query that loads repositories with PR statistics."""
         return base_query.options(
             selectinload(Repository.pull_requests).load_only(
@@ -207,7 +209,7 @@ class RepositoryQueryOptimizer:
         )
 
     @staticmethod
-    def optimize_active_repositories_query(base_query: Select) -> Select:
+    def optimize_active_repositories_query(base_query: Select[Any]) -> Select[Any]:
         """Optimize query for active repositories."""
         return base_query.where(Repository.status == "active").options(
             # Only load essential fields for monitoring
@@ -237,7 +239,9 @@ class QueryBatchProcessor:
         for i in range(0, len(ids), batch_size):
             batch_ids = ids[i : i + batch_size]
 
-            query: Select = Select(model_class).where(model_class.id.in_(batch_ids))
+            query: Select[Any] = Select(model_class).where(
+                model_class.id.in_(batch_ids)
+            )
             result = await self.session.execute(query)
             entities = result.scalars().all()
 
@@ -248,7 +252,7 @@ class QueryBatchProcessor:
 
     async def batch_execute_queries(
         self,
-        queries: list[Select],
+        queries: list[Select[Any]],
         batch_size: int = 5,
     ) -> list[Any]:
         """Execute multiple queries in batches."""
@@ -273,7 +277,7 @@ class QueryPlanAnalyzer:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def analyze_query_plan(self, query: Select) -> dict[str, Any]:
+    async def analyze_query_plan(self, query: Select[Any]) -> dict[str, Any]:
         """Analyze execution plan for a query (PostgreSQL specific)."""
         try:
             # Get the compiled query
@@ -350,7 +354,7 @@ OPTIMIZATION_STRATEGIES = {
 }
 
 
-def apply_optimization_strategy(query: Select, strategy: str) -> Select:
+def apply_optimization_strategy(query: Select[Any], strategy: str) -> Select[Any]:
     """Apply a pre-configured optimization strategy to a query."""
     if strategy in OPTIMIZATION_STRATEGIES:
         return OPTIMIZATION_STRATEGIES[strategy](query)

@@ -244,7 +244,7 @@ class DatabaseRetry:
         max_retries: int = 3,
         base_delay: float = 1.0,
         max_delay: float = 10.0,
-        exceptions: tuple = (SQLAlchemyError,),
+        exceptions: tuple[type[Exception], ...] = (SQLAlchemyError,),
     ) -> Any:
         """Execute database operation with exponential backoff retry.
 

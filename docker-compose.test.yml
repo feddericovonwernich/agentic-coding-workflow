@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Mock GitHub API server for testing
+  github-mock:
+    build:
+      context: tests/fixtures/github
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - test-network
+
+  # Redis for integration tests (if needed)
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    networks:
+      - test-network
+    
+  # PostgreSQL for integration tests (if needed)
+  postgres-test:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+# Volumes for test data persistence
+volumes:
+  postgres-test-data:
+  redis-test-data:

@@ -318,7 +318,9 @@ class IndexOptimizer:
 
         return missing_indexes
 
-    async def _get_existing_indexes(self, session: AsyncSession) -> set:
+    async def _get_existing_indexes(
+        self, session: AsyncSession
+    ) -> set[tuple[str, tuple[str, ...]]]:
         """Get existing indexes from the database."""
         existing_indexes = set()
 

@@ -57,7 +57,7 @@ class RedisCache(BaseCache[Any]):
     async def _get_client(self) -> Any:
         """Get or create Redis client."""
         if self._client is None:
-            self._client = redis.from_url(self.url, decode_responses=False)
+            self._client = redis.from_url(self.url, decode_responses=False)  # type: ignore[no-untyped-call]
         return self._client
 
     def _serialize(self, value: Any) -> bytes:

@@ -85,6 +85,10 @@ module = [
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "src.cache.redis_cache"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = [
