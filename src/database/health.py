@@ -9,6 +9,7 @@ import logging
 import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -33,7 +34,7 @@ class HealthCheckResult:
     name: str
     status: HealthStatus
     duration_ms: float
-    details: dict | None = None
+    details: dict[str, Any] | None = None
     error: str | None = None
 
 

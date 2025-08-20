@@ -161,9 +161,9 @@ def cache_result(
 
 
 def _generate_cache_key(
-    func: Callable,
-    args: tuple,
-    kwargs: dict,
+    func: Callable[..., Any],
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
     key_prefix: str | None = None,
     serialize_args: bool = True,
     ignore_args: list[str] | None = None,
@@ -227,7 +227,9 @@ def _serialize_arg(name: str, value: Any) -> str:
         return f"{name}:{value!s}"
 
 
-async def _auto_invalidate_cache(func: Callable, args: tuple, kwargs: dict) -> None:
+async def _auto_invalidate_cache(
+    func: Callable[..., Any], args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> None:
     """Auto-invalidate cache entries based on method name and class."""
     cache = get_cache_manager()
 
