@@ -1,0 +1,318 @@
+# Cost Optimization Configuration Example
+# This configuration demonstrates strategies for minimizing operational costs
+# while maintaining system effectiveness and reliability
+
+# System configuration optimized for cost efficiency
+system:
+  log_level: WARNING                   # Reduce log volume to save storage costs
+  environment: production
+  worker_timeout: 240                  # Shorter timeout to reduce compute costs
+  max_retry_attempts: 2                # Fewer retries to reduce API costs
+  circuit_breaker_failure_threshold: 3
+  circuit_breaker_timeout: 45          # Shorter timeout for faster failure detection
+  metrics_collection_enabled: true     # Essential for cost monitoring
+  debug_mode: false
+
+# Cost-optimized database configuration
+database:
+  url: "${DATABASE_URL}"
+  pool_size: 10                        # Smaller pool to reduce connection costs
+  max_overflow: 15                     # Limited overflow
+  pool_timeout: 20                     # Shorter timeout to prevent long waits
+  pool_recycle: 7200                   # 2 hours (longer to reduce reconnection overhead)
+  echo: false                          # Disable for performance and cost
+
+# Cost-efficient queue configuration
+queue:
+  provider: redis
+  url: "${REDIS_URL}"
+  default_queue: cost_optimized_queue
+  max_retries: 2                       # Fewer retries to reduce processing costs
+  visibility_timeout: 180              # Shorter timeout to process faster
+  dead_letter_queue_enabled: true
+  batch_size: 15                       # Larger batches for efficiency
+
+# Cost-optimized LLM configuration
+llm:
+  # Primary: Cost-effective Anthropic model
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: claude-3-haiku-20240307      # Fastest, most cost-effective model
+    max_tokens: 2000                    # Reduced token limit to save costs
+    temperature: 0.0                    # Most deterministic (fewer retries needed)
+    timeout: 45                         # Shorter timeout
+    rate_limit_rpm: 800                # Conservative rate limiting
+    
+    # Cost-specific settings
+    cost_per_token: 0.00025             # Track cost per token
+    daily_budget_limit: 50              # $50 daily limit
+    
+  # Backup: Cost-effective OpenAI model
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"
+    model: gpt-3.5-turbo               # Most cost-effective OpenAI model
+    max_tokens: 2000                    # Reduced token limit
+    temperature: 0.0
+    timeout: 45
+    rate_limit_rpm: 2000
+    
+    cost_per_token: 0.0015              # Track cost per token
+    daily_budget_limit: 30              # $30 daily limit
+
+# Use the most cost-effective model as default
+default_llm_provider: anthropic
+
+# Minimal notification configuration to reduce costs
+notification:
+  enabled: true
+  escalation_enabled: true
+  escalation_delay: 3600               # 1 hour delay to reduce alert volume
+  max_notifications_per_hour: 5       # Strict limit to control costs
+
+  channels:
+    # Single cost-effective notification channel
+    - provider: slack
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+      slack_channel: "#cost-alerts"
+      
+      # Cost-optimization for notifications
+      rate_limit_per_hour: 5           # Limit notifications
+      batch_notifications: true        # Batch multiple alerts
+      summary_only: true               # Send summaries instead of full details
+
+# Cost-optimized repository configuration
+repositories:
+  - url: https://github.com/company/cost-optimized-repo
+    auth_token: "${GITHUB_TOKEN}"
+    polling_interval: 600              # 10 minutes to reduce API calls
+    failure_threshold: 8               # Higher threshold to reduce processing
+    
+    # Aggressive skip patterns to reduce processing costs
+    skip_patterns:
+      pr_labels:
+        - wip
+        - draft
+        - dependencies                 # Skip expensive dependency checks
+        - docs-only                    # Skip documentation-only changes
+        - style-only                   # Skip style-only changes
+        - translation                  # Skip translation changes
+        - test-only                    # Skip test-only changes (if appropriate)
+      
+      check_names:
+        - codecov/*                    # Skip coverage checks
+        - license/*                    # Skip license checks
+        - security/codeql              # Skip expensive security scans
+        - build/windows-*              # Skip platform-specific builds
+        - deploy/staging               # Skip staging deployments
+      
+      authors:
+        - dependabot[bot]
+        - github-actions[bot]
+        - translation-bot[bot]
+        - docs-bot[bot]
+
+    # Cost-conscious fix categories
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 80        # High confidence to avoid wasted attempts
+        max_files_changed: 3           # Conservative to reduce processing time
+        cost_per_fix_limit: 2          # $2 limit per fix attempt
+      
+      format:
+        enabled: true
+        confidence_threshold: 90        # Very high confidence
+        max_files_changed: 5
+        cost_per_fix_limit: 1          # $1 limit (formatting is usually cheap)
+      
+      test:
+        enabled: false                 # Disable to save costs (handle manually)
+        always_escalate: true
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 85
+        max_files_changed: 2           # Very conservative
+        cost_per_fix_limit: 3          # $3 limit
+      
+      security:
+        enabled: false                 # Disable auto-fix (too expensive/risky)
+        always_escalate: true
+      
+      infrastructure:
+        enabled: false                 # Disable auto-fix
+        always_escalate: true
+      
+      dependencies:
+        enabled: false                 # Disable to avoid expensive dependency resolution
+        always_escalate: true
+
+    is_critical: false                 # Not critical to reduce processing priority
+    timezone: UTC
+
+    # Cost-optimized business hours (process only during business hours)
+    business_hours:
+      start: "09:00"
+      end: "17:00"                     # 8-hour processing window
+
+# Claude Code SDK cost optimization
+claude_code_sdk:
+  timeout: 180                         # 3 minutes (shorter to reduce costs)
+  max_concurrent_fixes: 1              # Sequential processing to control costs
+  test_validation_enabled: false      # Disable to save test execution costs
+  rollback_enabled: true              # Keep for safety
+
+# Cost optimization specific settings
+cost_optimization:
+  # Budget management
+  budgets:
+    daily_total: 100                   # $100 daily total budget
+    monthly_total: 2500                # $2500 monthly total budget
+    
+    # Per-service budgets
+    llm_api_daily: 60                  # $60 daily for LLM APIs
+    github_api_daily: 5                # $5 daily for GitHub API calls
+    notifications_daily: 2             # $2 daily for notifications
+    compute_daily: 30                  # $30 daily for compute resources
+    storage_daily: 3                   # $3 daily for storage
+  
+  # Cost tracking and alerts
+  tracking:
+    real_time_cost_monitoring: true    # Monitor costs in real-time
+    cost_breakdown_by_category: true   # Track costs by category
+    cost_attribution: true             # Attribute costs to specific operations
+    
+    # Alert thresholds
+    alerts:
+      daily_50_percent: true           # Alert at 50% of daily budget
+      daily_80_percent: true           # Alert at 80% of daily budget
+      daily_100_percent: true          # Alert at 100% of daily budget
+      monthly_90_percent: true         # Alert at 90% of monthly budget
+  
+  # Cost reduction strategies
+  strategies:
+    # LLM cost optimization
+    llm_optimization:
+      use_cheaper_models: true         # Prefer cheaper models when possible
+      token_limit_enforcement: strict  # Strictly enforce token limits
+      response_caching: aggressive     # Aggressively cache responses
+      prompt_optimization: enabled     # Optimize prompts to reduce tokens
+      batch_requests: enabled          # Batch multiple requests
+      
+      # Model selection by cost
+      model_selection_by_cost:
+        simple_tasks: "claude-3-haiku-20240307"     # Cheapest for simple tasks
+        medium_tasks: "gpt-3.5-turbo"               # Medium cost for medium tasks
+        complex_tasks: "claude-3-sonnet-20240229"   # More expensive only when needed
+    
+    # Infrastructure cost optimization
+    infrastructure:
+      auto_scaling: enabled            # Scale down during low usage
+      resource_right_sizing: enabled   # Use appropriately sized resources
+      spot_instances: enabled          # Use spot instances when available
+      storage_optimization: enabled    # Optimize storage usage
+      
+      # Scaling policies
+      scale_down_aggressive: true      # Aggressively scale down
+      minimum_instances: 1             # Minimum 1 instance
+      scale_down_delay: 300            # 5 minutes before scaling down
+    
+    # API cost optimization
+    api_optimization:
+      request_batching: enabled        # Batch API requests
+      intelligent_caching: enabled     # Cache API responses intelligently
+      rate_limit_optimization: enabled # Optimize rate limiting for cost
+      
+      # GitHub API optimization
+      github_api:
+        reduce_polling_frequency: true # Reduce polling frequency
+        use_webhooks_when_possible: true # Use webhooks instead of polling
+        cache_repository_data: true    # Cache repository metadata
+    
+    # Processing optimization
+    processing:
+      priority_based_processing: true  # Process high-priority items first
+      skip_low_value_tasks: true      # Skip tasks with low value/high cost
+      batch_similar_tasks: true       # Batch similar tasks together
+      
+      # Task prioritization
+      high_priority:
+        - critical_security_issues
+        - production_outages
+        - compilation_failures
+      
+      medium_priority:
+        - test_failures
+        - lint_errors
+      
+      low_priority:
+        - documentation_updates
+        - style_improvements
+        - dependency_updates
+
+  # Cost reporting
+  reporting:
+    daily_cost_reports: true           # Generate daily cost reports
+    weekly_trend_analysis: true        # Analyze weekly cost trends
+    monthly_cost_breakdown: true       # Detailed monthly breakdown
+    cost_optimization_recommendations: true # Suggest optimizations
+    
+    # Report recipients
+    recipients:
+      - engineering-managers@company.com
+      - finance-team@company.com
+      - cost-optimization@company.com
+  
+  # Emergency cost controls
+  emergency_controls:
+    # Automatic shutoffs
+    auto_shutdown_at_budget: true      # Auto-shutdown at budget limit
+    emergency_contact: "finance-team@company.com"
+    
+    # Progressive cost reduction
+    budget_thresholds:
+      75_percent:                      # At 75% of budget
+        - disable_non_critical_processing
+        - increase_confidence_thresholds
+        - reduce_polling_frequency
+      
+      90_percent:                      # At 90% of budget
+        - disable_all_auto_fixes
+        - emergency_notification_only
+        - minimum_processing_mode
+      
+      100_percent:                     # At 100% of budget
+        - shutdown_all_workers
+        - emergency_alerts_only
+        - manual_approval_required
+
+# Performance vs cost trade-offs
+performance_cost_tradeoffs:
+  # Acceptable performance degradation for cost savings
+  acceptable_degradation:
+    response_time_increase: 50         # Accept 50% slower response times
+    throughput_reduction: 30           # Accept 30% throughput reduction
+    availability_target: 99.0          # Reduce from 99.9% to 99.0%
+  
+  # Cost-performance optimization
+  optimization_targets:
+    cost_per_pr_processed: 5           # Target $5 per PR processed
+    cost_per_fix_applied: 15           # Target $15 per fix applied
+    monthly_cost_per_repository: 500   # Target $500 per repository per month
+
+# Feature flags for cost optimization
+cost_feature_flags:
+  aggressive_caching: true             # Enable aggressive caching
+  smart_batching: true                # Enable smart request batching
+  cost_aware_routing: true            # Route based on cost considerations
+  predictive_cost_modeling: true      # Predict costs before processing
+  dynamic_budget_allocation: true     # Dynamically allocate budgets
+  cost_optimization_ml: false         # ML-based cost optimization (expensive)
+  
+  # Experimental cost features (may increase complexity)
+  experimental_cost_features: false   # Disable experimental features
+  advanced_cost_analytics: false      # Disable advanced analytics
+  cost_optimization_automation: true  # Enable basic automation

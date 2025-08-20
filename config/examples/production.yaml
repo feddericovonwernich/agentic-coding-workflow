@@ -1,0 +1,336 @@
+# Production Environment Configuration
+# This configuration is optimized for production workloads with security hardening,
+# performance optimization, comprehensive monitoring, and high availability
+
+# Production system configuration
+system:
+  log_level: INFO                      # Standard production logging
+  environment: production              # Production environment
+  worker_timeout: 300                  # Standard timeout
+  max_retry_attempts: 3                # Standard retry attempts
+  circuit_breaker_failure_threshold: 3 # Fail fast in production
+  circuit_breaker_timeout: 60          # Standard timeout
+  metrics_collection_enabled: true     # Essential for production monitoring
+  debug_mode: false                    # Disabled for performance and security
+
+# Production database configuration with high performance settings
+database:
+  url: "${DATABASE_URL}"               # Required - production database URL
+  pool_size: 25                        # Large pool for high throughput
+  max_overflow: 40                     # Generous overflow for peak loads
+  pool_timeout: 20                     # Shorter timeout for responsiveness
+  pool_recycle: 3600                   # 1 hour recycle
+  echo: false                          # No query logging for performance
+
+# Production-grade queue configuration
+queue:
+  provider: redis                      # Redis for production reliability
+  url: "${REDIS_URL}"                  # Required - production Redis URL
+  default_queue: production_queue      # Production-specific queue
+  max_retries: 3                       # Standard retries
+  visibility_timeout: 240              # 4 minutes
+  dead_letter_queue_enabled: true      # Essential for monitoring failures
+  batch_size: 10                       # Optimized batch size
+
+# Production LLM provider configuration
+llm:
+  # Primary Anthropic configuration
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"     # Required - production API key
+    model: claude-3-sonnet-20240229     # Production-stable model
+    max_tokens: 4000                    # Standard token limit
+    temperature: 0.1                    # Consistent responses
+    timeout: 60                         # Standard timeout
+    rate_limit_rpm: 1000               # Production rate limit
+
+  # Backup OpenAI configuration for redundancy
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"        # Backup provider
+    model: gpt-4                        # Stable production model
+    max_tokens: 4000                    # Match primary provider
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 3000
+
+# Use Anthropic as primary with OpenAI as fallback
+default_llm_provider: anthropic
+
+# Production notification configuration
+notification:
+  enabled: true                        # Essential for production alerts
+  escalation_enabled: true             # Critical for production issues
+  escalation_delay: 1800               # 30 minutes (production standard)
+  max_notifications_per_hour: 8        # Prevent alert fatigue
+
+  channels:
+    # Telegram for immediate critical alerts
+    - provider: telegram
+      enabled: true
+      telegram_bot_token: "${TELEGRAM_BOT_TOKEN}"
+      telegram_chat_id: "${TELEGRAM_CHAT_ID}"
+
+    # Slack for team coordination
+    - provider: slack
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+      slack_channel: "#production-alerts"
+
+    # Email for escalation and audit trail
+    - provider: email
+      enabled: true
+      email_smtp_host: "${EMAIL_SMTP_HOST}"
+      email_smtp_port: 587
+      email_username: "${EMAIL_USERNAME}"
+      email_password: "${EMAIL_PASSWORD}"
+      email_from_address: "alerts@company.com"
+      email_to_addresses:
+        - "oncall@company.com"
+        - "engineering-managers@company.com"
+
+    # Webhook for external monitoring systems
+    - provider: webhook
+      enabled: true
+      webhook_url: "${MONITORING_WEBHOOK_URL}"
+      webhook_headers:
+        Authorization: "Bearer ${MONITORING_WEBHOOK_TOKEN}"
+        Content-Type: "application/json"
+        X-Environment: "production"
+        X-Service: "agentic-coding-workflow"
+
+# Production repository configuration
+repositories:
+  # Critical production repository
+  - url: https://github.com/company/production-app
+    auth_token: "${GITHUB_TOKEN}"       # Production GitHub token
+    polling_interval: 300               # 5 minutes standard
+    failure_threshold: 3                # Strict threshold for critical repo
+    
+    skip_patterns:
+      pr_labels:
+        - wip
+        - draft
+        - experimental                  # No experimental changes
+        - breaking-change               # Requires manual review
+      
+      check_names:
+        - codecov/*                     # Coverage handled separately
+        - license/*                     # License checks non-blocking
+        - security/dependabot           # Dependabot handled separately
+      
+      authors:
+        - dependabot[bot]              # Dependency updates handled separately
+
+    # Conservative fix categories for production
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 80        # High confidence required
+        max_files_changed: 8           # Conservative file limit
+      
+      format:
+        enabled: true
+        confidence_threshold: 85        # Very high confidence
+        max_files_changed: 10
+      
+      test:
+        enabled: true
+        confidence_threshold: 85        # High confidence for test fixes
+        run_full_test_suite: true      # Always run full suite
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 80
+        max_files_changed: 5           # Very conservative
+      
+      security:
+        enabled: false                 # Never auto-fix security issues
+        always_escalate: true
+      
+      infrastructure:
+        enabled: false                 # Never auto-fix infrastructure
+        always_escalate: true
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 95       # Extremely high threshold
+        max_files_changed: 2           # Only package files
+
+    is_critical: true                  # Critical production repository
+    timezone: UTC
+
+    business_hours:
+      start: "08:00"
+      end: "18:00"                     # Standard business hours
+
+  # Secondary production service
+  - url: https://github.com/company/api-service
+    auth_token: "${GITHUB_TOKEN}"
+    polling_interval: 300
+    failure_threshold: 4               # Slightly more lenient
+    
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 10
+      
+      format:
+        enabled: true
+        confidence_threshold: 80
+        max_files_changed: 15
+      
+      test:
+        enabled: true
+        confidence_threshold: 80
+        run_full_test_suite: true
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 6
+      
+      security:
+        enabled: false
+        always_escalate: true
+      
+      infrastructure:
+        enabled: false
+        always_escalate: true
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 90
+        max_files_changed: 3
+
+    is_critical: true
+    timezone: UTC
+
+    business_hours:
+      start: "08:00"
+      end: "18:00"
+
+# Claude Code SDK configuration for production
+claude_code_sdk:
+  timeout: 240                         # 4 minutes (shorter for production)
+  max_concurrent_fixes: 2              # Conservative concurrency
+  test_validation_enabled: true       # Always validate tests
+  rollback_enabled: true              # Essential for production safety
+
+# Production-specific monitoring and performance settings
+production_settings:
+  # Performance optimization
+  connection_pooling: true             # Enable connection pooling
+  request_caching: true               # Cache appropriate requests
+  response_compression: true          # Compress responses
+  
+  # Monitoring and observability
+  detailed_metrics: true              # Comprehensive metrics collection
+  tracing_enabled: true               # Distributed tracing
+  performance_monitoring: true       # Performance metrics
+  error_tracking: true                # Error tracking and aggregation
+  
+  # Security settings
+  security_headers: true              # Add security headers
+  rate_limiting: true                 # Enable rate limiting
+  input_validation: strict            # Strict input validation
+  audit_logging: true                 # Comprehensive audit logs
+  
+  # Reliability settings
+  health_checks: true                 # Enable health checks
+  graceful_shutdown: true             # Graceful shutdown handling
+  circuit_breakers: true              # Circuit breaker pattern
+  retry_with_backoff: true            # Exponential backoff retries
+  
+  # Backup and recovery
+  automated_backups: true             # Automated backup scheduling
+  disaster_recovery: true             # Disaster recovery procedures
+  data_retention: 90                  # Data retention in days
+  
+  # Compliance and governance
+  data_encryption: true               # Encrypt sensitive data
+  access_logging: true                # Log all access attempts
+  change_tracking: true               # Track configuration changes
+  compliance_monitoring: true        # Monitor compliance requirements
+
+# Production feature flags
+feature_flags:
+  new_caching_system: true            # Stable caching enabled
+  enhanced_notifications: true       # Production-ready notifications
+  advanced_analytics: true           # Full analytics suite
+  experimental_llm_providers: false  # No experimental features
+  beta_features: false                # No beta features in production
+  performance_optimizations: true    # All performance optimizations
+  security_enhancements: true        # All security features
+
+# Production deployment configuration
+deployment:
+  # Blue-green deployment settings
+  blue_green_enabled: true            # Enable blue-green deployments
+  canary_deployment: false            # Use blue-green instead of canary
+  rollback_strategy: "automatic"      # Automatic rollback on failures
+  
+  # Health check settings
+  health_check_path: "/health"
+  readiness_check_path: "/ready"
+  liveness_check_path: "/alive"
+  
+  # Load balancing
+  load_balancer_algorithm: "round_robin"
+  session_affinity: false
+  
+  # Scaling settings
+  min_replicas: 2                     # Minimum for high availability
+  max_replicas: 10                    # Maximum for cost control
+  target_cpu_utilization: 70         # Target CPU utilization
+  scale_up_cooldown: 300              # 5 minutes
+  scale_down_cooldown: 600            # 10 minutes
+
+# Production logging configuration
+logging:
+  # Log levels by component
+  root_level: INFO
+  database_level: WARNING             # Reduce database log noise
+  queue_level: INFO
+  llm_level: INFO
+  notification_level: INFO
+  
+  # Log formatting
+  format: json                        # Structured logging
+  timestamp_format: iso8601
+  include_trace_id: true              # For distributed tracing
+  
+  # Log destinations
+  console_enabled: false              # Disable console in production
+  file_enabled: true                  # Log to files
+  syslog_enabled: true               # Send to syslog
+  
+  # Log retention
+  max_file_size: "100MB"
+  max_files: 10
+  compression_enabled: true
+
+# Production security configuration
+security:
+  # Authentication
+  token_expiration: 3600              # 1 hour token expiration
+  refresh_token_expiration: 86400     # 24 hour refresh token
+  
+  # Authorization
+  strict_permissions: true            # Strict permission checking
+  role_based_access: true            # RBAC enabled
+  
+  # Network security
+  tls_version: "1.3"                 # Minimum TLS version
+  cipher_suites: "strong"            # Strong cipher suites only
+  
+  # Data protection
+  encryption_at_rest: true           # Encrypt data at rest
+  encryption_in_transit: true        # Encrypt data in transit
+  pii_detection: true                # Detect and protect PII
+  
+  # Monitoring
+  security_events: true              # Log security events
+  anomaly_detection: true            # Detect anomalous behavior
+  threat_detection: true             # Threat detection and response

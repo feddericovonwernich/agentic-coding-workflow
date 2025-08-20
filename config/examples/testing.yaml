@@ -1,0 +1,361 @@
+# Testing Environment Configuration
+# This configuration is optimized for automated testing with mocking,
+# isolated dependencies, and comprehensive test coverage validation
+
+# Test system configuration
+system:
+  log_level: DEBUG                     # Verbose logging for test debugging
+  environment: testing                 # Testing environment
+  worker_timeout: 120                  # Shorter timeout for faster test feedback
+  max_retry_attempts: 1                # Minimal retries for faster tests
+  circuit_breaker_failure_threshold: 2 # Quick failure detection
+  circuit_breaker_timeout: 30          # Short timeout for test isolation
+  metrics_collection_enabled: true     # Enable for test verification
+  debug_mode: true                     # Enable debug mode for testing
+
+# Test database configuration (isolated)
+database:
+  url: "${TEST_DATABASE_URL:sqlite:///:memory:}"  # In-memory by default
+  pool_size: 2                         # Minimal pool for testing
+  max_overflow: 3                      # Small overflow
+  pool_timeout: 10                     # Short timeout
+  pool_recycle: 600                    # 10 minutes
+  echo: true                           # Enable query logging for debugging
+
+# Test queue configuration (isolated)
+queue:
+  provider: redis
+  url: "${TEST_REDIS_URL:redis://localhost:6379/15}"  # Use DB 15 for tests
+  default_queue: test_queue            # Test-specific queue
+  max_retries: 1                       # Minimal retries
+  visibility_timeout: 60               # Short timeout
+  dead_letter_queue_enabled: true      # Test DLQ behavior
+  batch_size: 3                        # Small batches
+
+# Test LLM provider configuration (with mocking support)
+llm:
+  # Anthropic configuration for testing
+  anthropic:
+    provider: anthropic
+    api_key: "${TEST_ANTHROPIC_API_KEY:test-key-anthropic}"  # Default test key
+    model: claude-3-haiku-20240307      # Faster, cheaper model for tests
+    max_tokens: 1000                    # Smaller token limit for cost
+    temperature: 0.0                    # Deterministic for testing
+    timeout: 30                         # Short timeout
+    rate_limit_rpm: 100                # Conservative rate limit
+
+  # OpenAI configuration for testing
+  openai:
+    provider: openai
+    api_key: "${TEST_OPENAI_API_KEY:test-key-openai}"        # Default test key
+    model: gpt-3.5-turbo               # Cheaper model for testing
+    max_tokens: 1000                    # Smaller token limit
+    temperature: 0.0                    # Deterministic
+    timeout: 30
+    rate_limit_rpm: 150
+
+  # Mock provider for offline testing
+  mock:
+    provider: mock
+    api_key: "mock-key"
+    model: "mock-model"
+    max_tokens: 1000
+    temperature: 0.0
+    timeout: 5                          # Very fast for mocked responses
+
+# Use mock provider by default for testing
+default_llm_provider: mock
+
+# Test notification configuration (mocked)
+notification:
+  enabled: false                       # Disabled by default for tests
+  escalation_enabled: false           # No escalation in tests
+  escalation_delay: 60                # Short delay if enabled
+  max_notifications_per_hour: 100     # High limit for test scenarios
+
+  channels:
+    # Mock telegram for testing
+    - provider: telegram
+      enabled: false                   # Disabled by default
+      telegram_bot_token: "${TEST_TELEGRAM_BOT_TOKEN:test-bot-token}"
+      telegram_chat_id: "${TEST_TELEGRAM_CHAT_ID:test-chat-id}"
+
+    # Mock slack for testing
+    - provider: slack
+      enabled: false                   # Disabled by default
+      slack_webhook_url: "${TEST_SLACK_WEBHOOK_URL:http://localhost:8080/mock/slack}"
+      slack_channel: "#test-channel"
+
+    # Mock email for testing
+    - provider: email
+      enabled: false                   # Disabled by default
+      email_smtp_host: "${TEST_EMAIL_SMTP_HOST:localhost}"
+      email_smtp_port: 1025            # MailHog port
+      email_username: "test@localhost"
+      email_password: "test-password"
+      email_from_address: "test@localhost"
+      email_to_addresses:
+        - "test-recipient@localhost"
+
+    # Mock webhook for testing
+    - provider: webhook
+      enabled: false                   # Disabled by default
+      webhook_url: "${TEST_WEBHOOK_URL:http://localhost:8080/mock/webhook}"
+      webhook_headers:
+        Authorization: "Bearer test-token"
+        Content-Type: "application/json"
+        X-Environment: "testing"
+
+# Test repository configuration
+repositories:
+  # Mock repository for testing
+  - url: https://github.com/test-org/test-repo
+    auth_token: "${TEST_GITHUB_TOKEN:test-github-token}"
+    polling_interval: 60               # 1 minute for faster test cycles
+    failure_threshold: 2               # Low threshold for test scenarios
+    
+    skip_patterns:
+      pr_labels:
+        - test-skip                    # Skip test-specific labels
+        - mock                         # Skip mock PRs
+      
+      check_names:
+        - test/*                       # Skip test-specific checks
+        - mock/*                       # Skip mock checks
+      
+      authors:
+        - test-bot[bot]               # Skip test bots
+
+    # Permissive fix categories for testing
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 30       # Low threshold for testing
+        max_files_changed: 50         # High limit for comprehensive tests
+      
+      format:
+        enabled: true
+        confidence_threshold: 40
+        max_files_changed: 50
+      
+      test:
+        enabled: true
+        confidence_threshold: 50
+        run_full_test_suite: false    # Fast feedback for testing
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 50
+        max_files_changed: 20
+      
+      security:
+        enabled: true                 # Enable for security testing
+        confidence_threshold: 90      # High threshold
+        always_escalate: false        # Allow auto-fix for testing
+      
+      infrastructure:
+        enabled: true                 # Enable for infrastructure testing
+        confidence_threshold: 80
+        always_escalate: false
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 60      # Lower threshold for testing
+        max_files_changed: 10
+
+    is_critical: false                # Not critical for testing
+    timezone: UTC
+
+    business_hours:
+      start: "00:00"                  # 24/7 for automated testing
+      end: "23:59"
+
+# Claude Code SDK configuration for testing
+claude_code_sdk:
+  timeout: 60                         # Short timeout for testing
+  max_concurrent_fixes: 1             # Sequential for test isolation
+  test_validation_enabled: true      # Always validate in tests
+  rollback_enabled: true             # Test rollback functionality
+
+# Testing-specific settings
+test_settings:
+  # Mock external services
+  mock_llm_responses: true            # Use mocked LLM responses
+  mock_github_api: true              # Use mocked GitHub API
+  mock_notifications: true           # Use mocked notifications
+  mock_database: false               # Use real database for integration tests
+  mock_queue: false                  # Use real queue for integration tests
+  
+  # Test data management
+  clean_database_before_test: true   # Clean state for each test
+  seed_test_data: true               # Seed with test data
+  cleanup_after_test: true          # Clean up after tests
+  
+  # Test isolation
+  test_isolation_enabled: true       # Isolate test runs
+  parallel_tests: false              # Sequential tests by default
+  test_timeout: 300                  # 5 minute test timeout
+  
+  # Coverage and validation
+  code_coverage_enabled: true        # Track code coverage
+  coverage_threshold: 80             # Minimum coverage threshold
+  integration_tests: true           # Run integration tests
+  end_to_end_tests: false           # Skip E2E by default
+  
+  # Performance testing
+  performance_tests: false          # Skip performance tests by default
+  load_testing: false               # Skip load testing
+  benchmark_tests: false            # Skip benchmark tests
+  
+  # Debugging and diagnostics
+  verbose_logging: true              # Extra verbose logs
+  debug_api_calls: true             # Debug external API calls
+  save_test_artifacts: true         # Save test artifacts
+  capture_screenshots: false        # No UI screenshots in this context
+
+# Test fixtures and data
+test_fixtures:
+  # Sample pull requests for testing
+  sample_prs:
+    - id: 1
+      title: "Fix linting errors in main.py"
+      labels: ["bug", "lint"]
+      author: "developer"
+      checks:
+        - name: "eslint"
+          status: "failure"
+          conclusion: "failure"
+    
+    - id: 2
+      title: "Add new feature"
+      labels: ["feature"]
+      author: "developer"
+      checks:
+        - name: "tests"
+          status: "failure"
+          conclusion: "failure"
+  
+  # Sample check failures for testing
+  sample_failures:
+    lint:
+      log_url: "https://github.com/test-org/test-repo/runs/123456"
+      error_message: "Linting errors found in main.py"
+      file_path: "src/main.py"
+      line_number: 42
+    
+    test:
+      log_url: "https://github.com/test-org/test-repo/runs/123457"
+      error_message: "Test test_calculation failed"
+      file_path: "tests/test_main.py"
+      line_number: 15
+  
+  # Sample configurations for testing
+  sample_configs:
+    minimal:
+      system:
+        log_level: INFO
+      database:
+        url: "sqlite:///:memory:"
+      queue:
+        provider: redis
+        url: "redis://localhost:6379/15"
+    
+    complete:
+      # Full configuration for comprehensive testing
+      system:
+        log_level: DEBUG
+        environment: testing
+      database:
+        url: "postgresql://test:test@localhost:5432/test"
+        pool_size: 5
+      queue:
+        provider: redis
+        url: "redis://localhost:6379/15"
+      llm:
+        mock:
+          provider: mock
+          api_key: "test-key"
+          model: "test-model"
+
+# Mock server configuration for testing
+mock_servers:
+  # Mock GitHub API server
+  github_api:
+    enabled: true
+    port: 8081
+    base_url: "http://localhost:8081"
+    endpoints:
+      - path: "/repos/:owner/:repo/pulls"
+        method: GET
+        response_file: "fixtures/github/pulls.json"
+      - path: "/repos/:owner/:repo/pulls/:number/reviews"
+        method: POST
+        response_file: "fixtures/github/review_created.json"
+  
+  # Mock LLM API server
+  llm_api:
+    enabled: true
+    port: 8082
+    base_url: "http://localhost:8082"
+    endpoints:
+      - path: "/v1/messages"
+        method: POST
+        response_file: "fixtures/llm/analysis_response.json"
+      - path: "/v1/completions"
+        method: POST
+        response_file: "fixtures/llm/completion_response.json"
+  
+  # Mock notification services
+  notifications:
+    enabled: true
+    port: 8083
+    base_url: "http://localhost:8083"
+    endpoints:
+      - path: "/slack/webhook"
+        method: POST
+        response: {"status": "ok"}
+      - path: "/telegram/bot:token/sendMessage"
+        method: POST
+        response: {"ok": true, "result": {"message_id": 123}}
+
+# Test database schemas
+test_schemas:
+  # Clean schema for testing
+  clean:
+    - "DROP SCHEMA IF EXISTS public CASCADE"
+    - "CREATE SCHEMA public"
+    - "GRANT ALL ON SCHEMA public TO test"
+  
+  # Sample data for testing
+  sample_data:
+    repositories:
+      - name: "test-repo"
+        url: "https://github.com/test-org/test-repo"
+        is_active: true
+    
+    pull_requests:
+      - repository_id: 1
+        number: 1
+        title: "Test PR"
+        status: "open"
+    
+    check_runs:
+      - pull_request_id: 1
+        name: "eslint"
+        status: "completed"
+        conclusion: "failure"
+
+# Performance test configuration
+performance_test_config:
+  # Load testing parameters
+  concurrent_users: 5                 # Low concurrency for testing
+  ramp_up_time: 30                   # 30 seconds ramp up
+  test_duration: 120                 # 2 minutes
+  
+  # Response time thresholds
+  max_response_time: 5000            # 5 seconds max
+  average_response_time: 1000        # 1 second average
+  
+  # Throughput thresholds
+  min_requests_per_second: 10        # Minimum RPS
+  target_requests_per_second: 50     # Target RPS

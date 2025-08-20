@@ -1,0 +1,180 @@
+# High Volume Configuration Example
+# This configuration is optimized for handling high-volume repositories
+# with frequent commits, many pull requests, and heavy check activity
+
+# System configuration optimized for high throughput
+system:
+  log_level: WARNING                   # Reduce log volume for performance
+  environment: production
+  worker_timeout: 180                  # Shorter timeout for faster turnaround
+  max_retry_attempts: 2                # Fewer retries to avoid backlogs
+  circuit_breaker_failure_threshold: 5
+  circuit_breaker_timeout: 30          # Quick recovery
+  metrics_collection_enabled: true     # Essential for monitoring high volume
+  debug_mode: false
+
+# High-performance database configuration
+database:
+  url: "${DATABASE_URL}"
+  pool_size: 50                        # Large pool for high concurrency
+  max_overflow: 100                    # Generous overflow
+  pool_timeout: 15                     # Quick timeout to prevent queuing
+  pool_recycle: 1800                   # 30 minutes (more frequent recycling)
+  echo: false                          # Disable for performance
+
+# High-throughput queue configuration
+queue:
+  provider: redis
+  url: "${REDIS_URL}"
+  default_queue: high_volume_queue
+  max_retries: 2                       # Reduce retries
+  visibility_timeout: 120              # Shorter visibility for faster processing
+  dead_letter_queue_enabled: true
+  batch_size: 25                       # Large batches for efficiency
+
+# LLM configuration with rate limit optimization
+llm:
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: claude-3-sonnet-20240229
+    max_tokens: 3000                   # Slightly reduced for speed
+    temperature: 0.0                   # Fastest, most deterministic
+    timeout: 45                        # Shorter timeout
+    rate_limit_rpm: 2000              # High rate limit for volume
+
+  # Backup provider for overflow
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"
+    model: gpt-4
+    max_tokens: 3000
+    temperature: 0.0
+    timeout: 45
+    rate_limit_rpm: 5000
+
+default_llm_provider: anthropic
+
+# Minimal notifications to reduce overhead
+notification:
+  enabled: true
+  escalation_enabled: true
+  escalation_delay: 900                # 15 minutes (faster escalation)
+  max_notifications_per_hour: 20      # Higher limit for high volume
+
+  channels:
+    - provider: slack
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+      slack_channel: "#high-volume-alerts"
+
+# High-volume repository configuration
+repositories:
+  # Main high-volume repository
+  - url: https://github.com/company/high-volume-repo
+    auth_token: "${GITHUB_TOKEN}"
+    polling_interval: 120              # 2 minutes for frequent updates
+    failure_threshold: 3               # Lower threshold due to volume
+    
+    skip_patterns:
+      pr_labels:
+        - wip
+        - draft
+        - dependencies                 # Skip deps to reduce volume
+        - docs-only                    # Skip documentation PRs
+        - translation                  # Skip translation PRs
+      
+      check_names:
+        - codecov/*                    # Skip coverage for speed
+        - license/*
+        - security/codeql              # Skip long-running security scans
+        - build/windows-*              # Skip specific platforms if needed
+      
+      authors:
+        - dependabot[bot]
+        - github-actions[bot]
+        - translation-bot[bot]
+
+    # Aggressive fix categories for high volume
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 70       # Higher confidence to avoid noise
+        max_files_changed: 5           # Conservative for safety
+      
+      format:
+        enabled: true
+        confidence_threshold: 85       # Very high confidence
+        max_files_changed: 8
+      
+      test:
+        enabled: true
+        confidence_threshold: 80
+        run_full_test_suite: false    # Skip full suite for speed
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 3           # Very conservative
+      
+      security:
+        enabled: false                 # Disable for volume - handle separately
+        always_escalate: true
+      
+      infrastructure:
+        enabled: false                 # Disable for volume
+        always_escalate: true
+      
+      dependencies:
+        enabled: false                 # Handle separately to reduce volume
+
+    is_critical: true
+    timezone: UTC
+
+    # Extended business hours for high volume
+    business_hours:
+      start: "06:00"
+      end: "22:00"                     # 16-hour operation window
+
+# Claude Code SDK optimized for high volume
+claude_code_sdk:
+  timeout: 120                         # Shorter timeout for faster turnaround
+  max_concurrent_fixes: 5              # Higher concurrency for volume
+  test_validation_enabled: true
+  rollback_enabled: true
+
+# High-volume specific settings
+high_volume_settings:
+  # Performance optimizations
+  batch_processing: true              # Process multiple items together
+  parallel_workers: 8                 # Multiple workers for concurrency
+  cache_enabled: true                 # Aggressive caching
+  connection_pooling: true
+  
+  # Queue management
+  priority_queuing: true              # Priority-based processing
+  queue_partitioning: true           # Partition queues by type
+  auto_scaling: true                  # Auto-scale workers based on load
+  
+  # Rate limiting and throttling
+  adaptive_rate_limiting: true       # Adjust rates based on volume
+  backpressure_handling: true        # Handle backpressure gracefully
+  load_shedding: true                # Drop low-priority work under load
+  
+  # Monitoring and alerting
+  real_time_metrics: true            # Real-time performance metrics
+  capacity_monitoring: true          # Monitor capacity utilization
+  bottleneck_detection: true         # Detect and alert on bottlenecks
+  
+  # Data management
+  data_compression: true             # Compress stored data
+  retention_optimization: true       # Optimize data retention
+  cleanup_automation: true          # Automated cleanup of old data
+
+# Feature flags for high-volume optimizations
+feature_flags:
+  fast_path_processing: true         # Enable fast-path for simple fixes
+  bulk_operations: true              # Enable bulk API operations
+  smart_filtering: true              # Intelligent pre-filtering
+  predictive_scaling: true           # Predictive auto-scaling
+  advanced_caching: true             # Advanced caching strategies
