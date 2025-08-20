@@ -1,0 +1,174 @@
+# Development Environment Configuration
+# This configuration is optimized for local development with debugging enabled
+# and minimal external dependencies
+
+# Core system configuration for development
+system:
+  log_level: DEBUG                     # Verbose logging for debugging
+  environment: development             # Development environment
+  worker_timeout: 600                  # Longer timeout for debugging
+  max_retry_attempts: 2                # Fewer retries for faster feedback
+  circuit_breaker_failure_threshold: 10  # More lenient circuit breaker
+  circuit_breaker_timeout: 30          # Shorter timeout for quicker recovery
+  metrics_collection_enabled: true     # Enable metrics for debugging
+  debug_mode: true                     # Enable debug mode
+
+# Local database configuration (SQLite for simplicity)
+database:
+  url: "${DATABASE_URL:sqlite:///./dev.db}"  # Local SQLite with fallback
+  pool_size: 5                         # Smaller pool for development
+  max_overflow: 10                     # Limited overflow
+  pool_timeout: 30                     # Standard timeout
+  pool_recycle: 1800                   # 30 minutes
+  echo: true                           # Enable SQL query logging
+
+# Local Redis queue (with fallback to default port)
+queue:
+  provider: redis
+  url: "${REDIS_URL:redis://localhost:6379/1}"  # Use DB 1 for dev
+  default_queue: dev_queue             # Development-specific queue
+  max_retries: 2                       # Fewer retries
+  visibility_timeout: 180              # Shorter timeout
+  dead_letter_queue_enabled: true
+  batch_size: 5                        # Smaller batches
+
+# LLM provider configuration for development
+llm:
+  # Anthropic configuration for development
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"    # Required - get from Anthropic Console
+    model: claude-3-sonnet-20240229    # Balanced model for development
+    max_tokens: 2000                   # Smaller token limit to save costs
+    temperature: 0.1                   # Consistent responses
+    timeout: 60                        # Standard timeout
+    rate_limit_rpm: 100               # Conservative rate limit
+
+  # OpenAI configuration (optional for development)
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"       # Optional - for testing multiple providers
+    model: gpt-3.5-turbo              # Cheaper model for development
+    max_tokens: 2000                   # Smaller token limit
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 200
+
+# Use Anthropic as default for development
+default_llm_provider: anthropic
+
+# Notification configuration (minimal for development)
+notification:
+  enabled: false                       # Disable notifications in development
+  escalation_enabled: false           # No escalation needed
+  escalation_delay: 600               # 10 minutes if enabled
+  max_notifications_per_hour: 20      # Higher limit for testing
+
+  channels:
+    # Telegram for developer notifications (optional)
+    - provider: telegram
+      enabled: false                   # Disabled by default
+      telegram_bot_token: "${TELEGRAM_BOT_TOKEN}"
+      telegram_chat_id: "${TELEGRAM_CHAT_ID}"
+
+    # Slack for team notifications (optional)  
+    - provider: slack
+      enabled: false                   # Disabled by default
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+      slack_channel: "#dev-alerts"
+
+    # Email notifications (disabled for development)
+    - provider: email
+      enabled: false
+      email_smtp_host: "localhost"    # Local SMTP for testing
+      email_smtp_port: 1025           # MailHog or similar
+      email_from_address: "dev@localhost"
+      email_to_addresses:
+        - "developer@localhost"
+
+# Repository configuration for development
+repositories:
+  # Example development repository
+  - url: https://github.com/your-username/test-repo
+    auth_token: "${GITHUB_TOKEN}"      # Personal access token
+    polling_interval: 120              # 2 minutes for faster feedback
+    failure_threshold: 8               # More lenient for development
+    
+    # Skip patterns for development
+    skip_patterns:
+      pr_labels:
+        - wip                          # Work in progress
+        - draft                        # Draft PRs
+        - dependencies                 # Dependency updates
+        - experimental                 # Experimental changes
+      
+      check_names:
+        - codecov/*                    # Code coverage
+        - license/*                    # License checks  
+        - security/*                   # Security scans (handled separately)
+      
+      authors:
+        - dependabot[bot]             # Dependency bot
+        - github-actions[bot]         # GitHub Actions bot
+
+    # Fix categories optimized for development
+    fix_categories:
+      lint:                           # Linting fixes
+        enabled: true
+        confidence_threshold: 50       # Lower threshold for development
+        max_files_changed: 15         # Allow more file changes
+      
+      format:                         # Code formatting
+        enabled: true
+        confidence_threshold: 60
+        max_files_changed: 20
+      
+      test:                           # Test fixes
+        enabled: true
+        confidence_threshold: 70       # Moderate threshold
+        run_full_test_suite: false    # Skip full suite for speed
+      
+      compilation:                    # Compilation errors
+        enabled: true
+        confidence_threshold: 70
+        max_files_changed: 8
+      
+      security:                       # Security issues
+        enabled: false                # Disabled for development
+        always_escalate: true
+      
+      infrastructure:                 # Infrastructure issues
+        enabled: false                # Disabled for development
+        always_escalate: true
+      
+      dependencies:                   # Dependency issues
+        enabled: true
+        confidence_threshold: 80
+        max_files_changed: 5
+
+    is_critical: false                # Not critical in development
+    timezone: UTC                     # Use UTC for consistency
+
+    # Business hours (optional for development)
+    business_hours:
+      start: "09:00"
+      end: "18:00"                   # Extended hours for development
+
+# Claude Code SDK configuration for development
+claude_code_sdk:
+  timeout: 300                       # 5 minutes timeout
+  max_concurrent_fixes: 2            # Limited concurrency
+  test_validation_enabled: true     # Enable test validation
+  rollback_enabled: true            # Enable rollback on failures
+
+# Development-specific additional settings
+dev_settings:
+  # Mock external services for testing
+  mock_llm_responses: false          # Set to true for offline development
+  mock_github_api: false             # Set to true for testing
+  mock_notifications: false         # Set to true for testing
+  
+  # Local development overrides
+  hot_reload_config: true            # Enable hot reload
+  verbose_logging: true              # Extra verbose logs
+  profile_performance: true         # Enable performance profiling

@@ -1,0 +1,393 @@
+# Enhanced Security Configuration Example
+# This configuration demonstrates advanced security features including
+# strict access controls, comprehensive audit logging, and security-first policies
+
+# Security-hardened system configuration
+system:
+  log_level: INFO                      # Balanced logging for security monitoring
+  environment: production
+  worker_timeout: 300
+  max_retry_attempts: 2                # Fewer retries to prevent brute force
+  circuit_breaker_failure_threshold: 3 # Fail fast for security
+  circuit_breaker_timeout: 120         # Longer timeout for security analysis
+  metrics_collection_enabled: true     # Essential for security monitoring
+  debug_mode: false                    # Disabled for security
+
+# Database configuration with security features
+database:
+  url: "${DATABASE_URL}"               # Must include SSL parameters
+  pool_size: 15                        # Conservative pool size
+  max_overflow: 20
+  pool_timeout: 30
+  pool_recycle: 1800                   # More frequent recycling for security
+  echo: false                          # No query logging for security
+  
+  # Security-specific database settings
+  ssl_required: true                   # Require SSL connections
+  ssl_verify_ca: true                  # Verify CA certificates
+  connection_encryption: true          # Encrypt connections
+
+# Queue configuration with security features
+queue:
+  provider: redis
+  url: "${REDIS_URL}"                  # Must include SSL and auth
+  default_queue: secure_queue
+  max_retries: 2                       # Limited retries
+  visibility_timeout: 300
+  dead_letter_queue_enabled: true
+  batch_size: 5                        # Smaller batches for security review
+  
+  # Security-specific queue settings
+  encryption_at_rest: true             # Encrypt queue data
+  access_control_enabled: true         # Enable queue access controls
+  audit_logging: true                  # Log all queue operations
+
+# LLM configuration with security controls
+llm:
+  # Primary Anthropic with security focus
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: claude-3-sonnet-20240229
+    max_tokens: 4000
+    temperature: 0.0                   # Deterministic for security
+    timeout: 90                        # Longer timeout for complex security analysis
+    rate_limit_rpm: 500               # Conservative rate limiting
+    
+    # Security-specific LLM settings
+    content_filtering: strict          # Strict content filtering
+    safety_checks: enabled             # Enable all safety checks
+    audit_requests: true               # Audit all API requests
+    data_residency: "us"               # Specify data residency
+    
+  # Backup provider with same security settings
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"
+    model: gpt-4
+    max_tokens: 4000
+    temperature: 0.0
+    timeout: 90
+    rate_limit_rpm: 1000
+    
+    content_filtering: strict
+    safety_checks: enabled
+    audit_requests: true
+
+default_llm_provider: anthropic
+
+# Enhanced notification configuration with security features
+notification:
+  enabled: true
+  escalation_enabled: true
+  escalation_delay: 900               # Faster escalation for security issues
+  max_notifications_per_hour: 15     # Higher limit for security alerts
+  
+  # Security-specific notification settings
+  encryption_enabled: true            # Encrypt notification content
+  audit_notifications: true          # Audit all notifications
+  security_channel_required: true    # Require dedicated security channel
+
+  channels:
+    # Secure Slack channel for security alerts
+    - provider: slack
+      enabled: true
+      slack_webhook_url: "${SECURITY_SLACK_WEBHOOK_URL}"
+      slack_channel: "#security-alerts"
+      encryption_enabled: true
+      audit_logging: true
+    
+    # Secure email for critical security issues
+    - provider: email
+      enabled: true
+      email_smtp_host: "${SECURE_EMAIL_SMTP_HOST}"
+      email_smtp_port: 587
+      email_username: "${SECURE_EMAIL_USERNAME}"
+      email_password: "${SECURE_EMAIL_PASSWORD}"
+      email_from_address: "security-alerts@company.com"
+      email_to_addresses:
+        - "security-team@company.com"
+        - "ciso@company.com"
+      
+      # Email security settings
+      encryption_enabled: true          # Encrypt email content
+      digital_signature: true          # Sign emails
+      priority: high                   # High priority delivery
+    
+    # Secure webhook for SIEM integration
+    - provider: webhook
+      enabled: true
+      webhook_url: "${SIEM_WEBHOOK_URL}"
+      webhook_headers:
+        Authorization: "Bearer ${SIEM_API_TOKEN}"
+        Content-Type: "application/json"
+        X-Security-Level: "critical"
+        X-Audit-Required: "true"
+      
+      encryption_enabled: true
+      mutual_tls: true                 # Require mutual TLS
+      certificate_pinning: true        # Pin certificates
+
+# Security-focused repository configuration
+repositories:
+  - url: https://github.com/company/secure-app
+    auth_token: "${GITHUB_TOKEN_SECURITY}"  # Dedicated security token
+    polling_interval: 180               # More frequent polling for security
+    failure_threshold: 2                # Low threshold for security issues
+    
+    # Security-focused skip patterns
+    skip_patterns:
+      pr_labels:
+        - wip
+        - draft
+        # Don't skip security or compliance labels
+      
+      check_names:
+        - codecov/*                     # Skip coverage for focus on security
+        # Don't skip security scans
+      
+      authors:
+        - dependabot[bot]              # Handle dependency updates separately
+        # Don't skip any human authors
+
+    # Security-first fix categories
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 85        # High confidence required
+        max_files_changed: 5           # Conservative file changes
+        security_review_required: true # Require security review
+      
+      format:
+        enabled: true
+        confidence_threshold: 90        # Very high confidence
+        max_files_changed: 3           # Very conservative
+        security_review_required: false
+      
+      test:
+        enabled: true
+        confidence_threshold: 90        # High confidence for test changes
+        run_full_test_suite: true      # Always run full suite
+        security_test_required: true   # Require security tests
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 85
+        max_files_changed: 3
+        security_review_required: true
+      
+      security:
+        enabled: false                 # Never auto-fix security issues
+        always_escalate: true
+        immediate_escalation: true     # Immediate escalation
+        security_team_notification: true
+      
+      infrastructure:
+        enabled: false                 # Never auto-fix infrastructure
+        always_escalate: true
+        immediate_escalation: true
+        security_team_notification: true
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 95        # Extremely high confidence
+        max_files_changed: 2           # Only manifest files
+        security_scan_required: true   # Require security scan
+        vulnerability_check: true     # Check for vulnerabilities
+
+    is_critical: true                  # Critical security repository
+    timezone: UTC
+    
+    # Security-focused business hours
+    business_hours:
+      start: "00:00"                   # 24/7 monitoring for security
+      end: "23:59"
+    
+    # Security-specific repository settings
+    security_settings:
+      vulnerability_scanning: true     # Enable vulnerability scanning
+      secret_scanning: true            # Enable secret scanning
+      compliance_checking: true       # Enable compliance checks
+      audit_logging: comprehensive    # Comprehensive audit logging
+      access_monitoring: true          # Monitor all access
+      branch_protection: strict       # Strict branch protection
+
+# Claude Code SDK with security enhancements
+claude_code_sdk:
+  timeout: 240                         # Shorter timeout for security
+  max_concurrent_fixes: 1              # Sequential for security review
+  test_validation_enabled: true
+  rollback_enabled: true
+  
+  # Security-specific SDK settings
+  security_validation: true           # Enable security validation
+  code_signing: true                  # Sign all code changes
+  audit_trail: comprehensive         # Comprehensive audit trail
+  approval_required: true             # Require approval for changes
+
+# Security-specific settings
+security_settings:
+  # Access control
+  access_control:
+    role_based_access: true           # Enable RBAC
+    principle_of_least_privilege: true # Minimal permissions
+    multi_factor_authentication: required # Require MFA
+    session_timeout: 1800             # 30 minute session timeout
+    
+    # User permissions
+    permissions:
+      security_team:
+        - view_all_repos
+        - escalate_issues
+        - approve_fixes
+        - access_audit_logs
+      
+      developers:
+        - view_assigned_repos
+        - submit_fixes
+        - view_own_audit_logs
+      
+      managers:
+        - view_team_repos
+        - approve_non_security_fixes
+        - view_team_metrics
+  
+  # Audit and compliance
+  audit:
+    comprehensive_logging: true       # Log everything
+    log_retention: 2555               # 7 years retention
+    tamper_protection: true           # Protect logs from tampering
+    real_time_monitoring: true        # Real-time log monitoring
+    compliance_reporting: true        # Generate compliance reports
+    
+    # Audit events
+    events_to_audit:
+      - configuration_changes
+      - user_authentication
+      - permission_changes
+      - code_modifications
+      - security_incidents
+      - data_access
+      - system_errors
+      - api_calls
+  
+  # Encryption
+  encryption:
+    data_at_rest: aes_256             # AES-256 encryption
+    data_in_transit: tls_1_3          # TLS 1.3 minimum
+    key_management: hsm               # Hardware security module
+    key_rotation: 90                  # 90-day key rotation
+    
+    # Encrypted fields
+    encrypted_fields:
+      - api_keys
+      - tokens
+      - passwords
+      - user_data
+      - configuration_secrets
+      - audit_logs
+  
+  # Network security
+  network:
+    ip_allowlisting: enabled          # Enable IP allowlisting
+    geo_blocking: enabled             # Block certain geographic regions
+    rate_limiting: strict             # Strict rate limiting
+    ddos_protection: enabled          # DDoS protection
+    
+    # Allowed IP ranges
+    allowed_ips:
+      - "10.0.0.0/8"                  # Corporate network
+      - "192.168.1.0/24"              # Office network
+      # Add specific IP ranges as needed
+  
+  # Incident response
+  incident_response:
+    automated_response: enabled       # Enable automated responses
+    escalation_matrix: security_team  # Escalate to security team
+    containment_actions: enabled     # Enable containment actions
+    forensic_logging: enabled        # Enable forensic logging
+    
+    # Response actions
+    actions:
+      high_severity:
+        - immediate_notification
+        - disable_affected_accounts
+        - isolate_affected_systems
+        - start_incident_response
+      
+      medium_severity:
+        - notify_security_team
+        - increase_monitoring
+        - require_additional_approval
+      
+      low_severity:
+        - log_incident
+        - notify_administrators
+  
+  # Vulnerability management
+  vulnerability_management:
+    scanning_frequency: daily         # Daily vulnerability scans
+    auto_patching: critical_only      # Auto-patch critical vulnerabilities
+    risk_assessment: required         # Require risk assessment
+    remediation_sla: 24               # 24-hour SLA for critical vulns
+    
+    # Vulnerability thresholds
+    thresholds:
+      critical: 0                     # Zero tolerance for critical
+      high: 5                         # Max 5 high severity
+      medium: 20                      # Max 20 medium severity
+      low: 100                        # Max 100 low severity
+
+# Security monitoring and alerting
+security_monitoring:
+  # Real-time monitoring
+  real_time:
+    enabled: true
+    anomaly_detection: true           # Detect anomalous behavior
+    threat_intelligence: enabled     # Use threat intelligence feeds
+    behavioral_analysis: enabled     # Analyze user behavior
+    
+  # Security metrics
+  metrics:
+    track_failed_logins: true
+    track_permission_escalations: true
+    track_unusual_access_patterns: true
+    track_configuration_changes: true
+    track_api_abuse: true
+    
+  # Alert thresholds
+  alerts:
+    failed_login_threshold: 5         # Alert after 5 failed logins
+    permission_change_alert: immediate # Immediate alert on permission changes
+    unusual_access_alert: true        # Alert on unusual access patterns
+    configuration_change_alert: immediate # Immediate alert on config changes
+
+# Compliance and governance
+compliance:
+  frameworks:
+    - SOC2_Type2                      # SOC 2 Type 2 compliance
+    - ISO27001                        # ISO 27001 compliance
+    - NIST_CSF                        # NIST Cybersecurity Framework
+    - GDPR                            # GDPR compliance
+  
+  reporting:
+    automated_reports: true           # Generate automated compliance reports
+    report_frequency: monthly         # Monthly compliance reports
+    external_auditor_access: true     # Provide access for external auditors
+  
+  data_governance:
+    data_classification: enabled      # Classify data by sensitivity
+    data_loss_prevention: enabled    # Enable DLP
+    privacy_controls: strict          # Strict privacy controls
+    data_retention_policy: enforced  # Enforce data retention policies
+
+# Security feature flags
+security_feature_flags:
+  advanced_threat_detection: true
+  machine_learning_security: true
+  zero_trust_architecture: true
+  continuous_compliance_monitoring: true
+  automated_incident_response: true
+  security_orchestration: true
+  threat_hunting: true
+  deception_technology: false        # Advanced feature, disable if not needed

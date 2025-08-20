@@ -1,0 +1,320 @@
+# Multi-Provider LLM Configuration Example
+# This configuration demonstrates how to set up multiple LLM providers
+# with fallback strategies, load balancing, and provider-specific optimizations
+
+# Standard system configuration
+system:
+  log_level: INFO
+  environment: production
+  worker_timeout: 300
+  max_retry_attempts: 3
+  circuit_breaker_failure_threshold: 5
+  circuit_breaker_timeout: 60
+  metrics_collection_enabled: true
+  debug_mode: false
+
+# Standard database configuration
+database:
+  url: "${DATABASE_URL}"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+
+# Standard queue configuration
+queue:
+  provider: redis
+  url: "${REDIS_URL}"
+  default_queue: multi_llm_queue
+  max_retries: 3
+  visibility_timeout: 300
+  dead_letter_queue_enabled: true
+  batch_size: 10
+
+# Comprehensive multi-provider LLM configuration
+llm:
+  # Primary provider: Anthropic Claude
+  anthropic_primary:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY_PRIMARY}"
+    model: claude-3-sonnet-20240229
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 1000
+    priority: 1                        # Highest priority
+
+  # Secondary Anthropic with different model
+  anthropic_secondary:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY_SECONDARY}"
+    model: claude-3-haiku-20240307     # Faster model for simpler tasks
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 45
+    rate_limit_rpm: 1500
+    priority: 2
+
+  # OpenAI GPT-4 as primary alternative
+  openai_gpt4:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"
+    model: gpt-4
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 3000
+    priority: 3
+
+  # OpenAI GPT-3.5 for cost-effective processing
+  openai_gpt35:
+    provider: openai
+    api_key: "${OPENAI_API_KEY}"
+    model: gpt-3.5-turbo
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 45
+    rate_limit_rpm: 5000
+    priority: 4
+
+  # Azure OpenAI for enterprise compliance
+  azure_openai:
+    provider: azure_openai
+    api_key: "${AZURE_OPENAI_API_KEY}"
+    endpoint: "${AZURE_OPENAI_ENDPOINT}"
+    model: gpt-4
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 2000
+    priority: 3                        # Same priority as OpenAI GPT-4
+
+  # Google Gemini for diversity
+  gemini:
+    provider: gemini
+    api_key: "${GEMINI_API_KEY}"
+    model: gemini-pro
+    max_tokens: 8000                   # Gemini supports more tokens
+    temperature: 0.1
+    timeout: 60
+    rate_limit_rpm: 1000
+    priority: 5
+
+  # Custom/self-hosted model
+  custom_llm:
+    provider: custom
+    api_key: "${CUSTOM_LLM_API_KEY}"
+    endpoint: "${CUSTOM_LLM_ENDPOINT}"
+    model: custom-model-v1
+    max_tokens: 4000
+    temperature: 0.1
+    timeout: 90                        # Longer timeout for self-hosted
+    rate_limit_rpm: 500
+    priority: 6
+
+# Use primary Anthropic as default
+default_llm_provider: anthropic_primary
+
+# Standard notification configuration
+notification:
+  enabled: true
+  escalation_enabled: true
+  escalation_delay: 1800
+  max_notifications_per_hour: 10
+
+  channels:
+    - provider: slack
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL}"
+      slack_channel: "#llm-ops"
+
+# Repository configuration with provider-specific routing
+repositories:
+  - url: https://github.com/company/main-repo
+    auth_token: "${GITHUB_TOKEN}"
+    polling_interval: 300
+    failure_threshold: 5
+    
+    skip_patterns:
+      pr_labels: ["wip", "draft", "dependencies"]
+      check_names: ["codecov/*", "license/*"]
+      authors: ["dependabot[bot]"]
+
+    # Fix categories with provider routing
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 70
+        max_files_changed: 10
+        preferred_provider: anthropic_secondary  # Use faster model for lint
+      
+      format:
+        enabled: true
+        confidence_threshold: 80
+        max_files_changed: 15
+        preferred_provider: openai_gpt35        # Cost-effective for formatting
+      
+      test:
+        enabled: true
+        confidence_threshold: 80
+        run_full_test_suite: true
+        preferred_provider: anthropic_primary    # Use best model for tests
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 6
+        preferred_provider: openai_gpt4         # GPT-4 good for compilation
+      
+      security:
+        enabled: false
+        always_escalate: true
+        preferred_provider: anthropic_primary    # Best model for security
+      
+      infrastructure:
+        enabled: false
+        always_escalate: true
+        preferred_provider: custom_llm          # Use specialized model
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 90
+        max_files_changed: 3
+        preferred_provider: gemini              # Use Gemini for deps
+
+    is_critical: true
+    timezone: UTC
+
+    business_hours:
+      start: "08:00"
+      end: "18:00"
+
+# Claude Code SDK configuration
+claude_code_sdk:
+  timeout: 300
+  max_concurrent_fixes: 3
+  test_validation_enabled: true
+  rollback_enabled: true
+
+# Multi-provider specific settings
+multi_provider_settings:
+  # Load balancing strategy
+  load_balancing:
+    strategy: "weighted_round_robin"   # Options: round_robin, weighted, priority
+    weights:
+      anthropic_primary: 40
+      anthropic_secondary: 20
+      openai_gpt4: 20
+      azure_openai: 10
+      openai_gpt35: 5
+      gemini: 3
+      custom_llm: 2
+  
+  # Fallback configuration
+  fallback:
+    enabled: true
+    max_attempts: 3                    # Try up to 3 providers
+    fallback_order:                    # Explicit fallback order
+      - anthropic_primary
+      - openai_gpt4
+      - azure_openai
+      - anthropic_secondary
+      - openai_gpt35
+      - gemini
+    
+    # Conditions for fallback
+    fallback_triggers:
+      - rate_limit_exceeded
+      - timeout
+      - api_error
+      - quota_exceeded
+      - service_unavailable
+  
+  # Provider routing rules
+  routing_rules:
+    # Route by task complexity
+    complexity_routing:
+      simple:                          # Simple tasks (lint, format)
+        providers: ["anthropic_secondary", "openai_gpt35"]
+      
+      medium:                          # Medium tasks (compilation, tests)
+        providers: ["anthropic_primary", "openai_gpt4", "azure_openai"]
+      
+      complex:                         # Complex tasks (security, architecture)
+        providers: ["anthropic_primary", "openai_gpt4"]
+    
+    # Route by cost sensitivity
+    cost_routing:
+      cost_sensitive:                  # Use cheaper models
+        providers: ["openai_gpt35", "anthropic_secondary"]
+      
+      quality_focused:                 # Use premium models
+        providers: ["anthropic_primary", "openai_gpt4"]
+    
+    # Route by compliance requirements
+    compliance_routing:
+      enterprise:                      # Enterprise compliance
+        providers: ["azure_openai", "custom_llm"]
+      
+      standard:                        # Standard compliance
+        providers: ["anthropic_primary", "openai_gpt4"]
+  
+  # Performance monitoring
+  monitoring:
+    track_response_times: true
+    track_token_usage: true
+    track_cost_per_provider: true
+    track_success_rates: true
+    track_quality_scores: true
+    
+    # Alert thresholds
+    alerts:
+      response_time_threshold: 120     # Alert if response > 2 minutes
+      error_rate_threshold: 5          # Alert if error rate > 5%
+      cost_threshold: 1000            # Alert if daily cost > $1000
+  
+  # Cost optimization
+  cost_optimization:
+    enabled: true
+    daily_budget: 500                  # $500 daily budget
+    provider_budgets:
+      anthropic_primary: 200
+      openai_gpt4: 150
+      azure_openai: 100
+      anthropic_secondary: 30
+      openai_gpt35: 15
+      gemini: 3
+      custom_llm: 2
+    
+    # Cost-saving strategies
+    strategies:
+      use_cheaper_for_retries: true    # Use cheaper models for retries
+      cache_responses: true            # Cache responses to reduce API calls
+      optimize_token_usage: true       # Optimize prompts to reduce tokens
+  
+  # Quality assurance
+  quality_assurance:
+    enabled: true
+    cross_validation: true             # Validate responses across providers
+    quality_threshold: 0.8             # Minimum quality score
+    
+    # A/B testing
+    ab_testing:
+      enabled: true
+      traffic_split: 10               # 10% traffic for A/B tests
+      test_providers: ["gemini", "custom_llm"]
+
+# Provider-specific feature flags
+feature_flags:
+  anthropic_function_calling: true
+  openai_function_calling: true
+  gemini_multimodal: false            # Disable if not needed
+  azure_content_filtering: true
+  custom_model_fine_tuning: false
+  
+  # Advanced features
+  multi_provider_consensus: false     # Get consensus from multiple providers
+  dynamic_provider_selection: true   # Dynamically select best provider
+  provider_health_checks: true       # Monitor provider health
+  intelligent_caching: true          # Cache based on provider performance

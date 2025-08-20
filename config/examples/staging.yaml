@@ -1,0 +1,221 @@
+# Staging Environment Configuration  
+# This configuration mimics production but with reduced scale and enhanced monitoring
+# for testing deployments before production release
+
+# System configuration for staging
+system:
+  log_level: INFO                      # Standard logging level
+  environment: staging                 # Staging environment
+  worker_timeout: 450                  # Slightly longer than production
+  max_retry_attempts: 3                # Standard retry attempts
+  circuit_breaker_failure_threshold: 5 # Same as production
+  circuit_breaker_timeout: 60          # Standard timeout
+  metrics_collection_enabled: true     # Enable for monitoring
+  debug_mode: false                    # Production-like settings
+
+# Production-like database configuration
+database:
+  url: "${DATABASE_URL}"               # Required - staging database URL
+  pool_size: 15                        # Moderate pool size
+  max_overflow: 25                     # Allow overflow for testing
+  pool_timeout: 30                     # Standard timeout
+  pool_recycle: 3600                   # 1 hour recycle
+  echo: false                          # No query logging (performance)
+
+# Production-like queue configuration
+queue:
+  provider: redis                      # Use same provider as production
+  url: "${REDIS_URL}"                  # Required - staging Redis URL
+  default_queue: staging_queue         # Staging-specific queue
+  max_retries: 3                       # Standard retries
+  visibility_timeout: 300              # 5 minutes
+  dead_letter_queue_enabled: true     # Enable DLQ for testing
+  batch_size: 8                        # Moderate batch size
+
+# LLM provider configuration for staging
+llm:
+  # Anthropic configuration
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY_STAGING}"  # Staging-specific key
+    model: claude-3-sonnet-20240229          # Same as production
+    max_tokens: 4000                         # Production token limit
+    temperature: 0.1                         # Consistent with production
+    timeout: 90                              # Slightly longer for testing
+    rate_limit_rpm: 800                     # Moderate rate limit
+
+  # OpenAI configuration (for multi-provider testing)
+  openai:
+    provider: openai
+    api_key: "${OPENAI_API_KEY_STAGING}"     # Staging-specific key
+    model: gpt-4                             # Production model
+    max_tokens: 4000                         # Production token limit
+    temperature: 0.1
+    timeout: 90
+    rate_limit_rpm: 2000
+
+# Default provider same as production
+default_llm_provider: anthropic
+
+# Enhanced notification configuration for staging
+notification:
+  enabled: true                        # Enable notifications
+  escalation_enabled: true             # Test escalation logic
+  escalation_delay: 900                # 15 minutes (faster than production)
+  max_notifications_per_hour: 15       # Higher limit for testing
+
+  channels:
+    # Telegram for immediate alerts
+    - provider: telegram
+      enabled: true
+      telegram_bot_token: "${TELEGRAM_BOT_TOKEN_STAGING}"
+      telegram_chat_id: "${TELEGRAM_CHAT_ID_STAGING}"
+
+    # Slack for team notifications
+    - provider: slack  
+      enabled: true
+      slack_webhook_url: "${SLACK_WEBHOOK_URL_STAGING}"
+      slack_channel: "#staging-alerts"
+
+    # Email for escalation testing
+    - provider: email
+      enabled: true
+      email_smtp_host: "${EMAIL_SMTP_HOST}"
+      email_smtp_port: 587
+      email_username: "${EMAIL_USERNAME_STAGING}"
+      email_password: "${EMAIL_PASSWORD_STAGING}" 
+      email_from_address: "staging-alerts@company.com"
+      email_to_addresses:
+        - "staging-team@company.com"
+        - "qa-team@company.com"
+
+    # Webhook for integration testing
+    - provider: webhook
+      enabled: true
+      webhook_url: "${STAGING_WEBHOOK_URL}"
+      webhook_headers:
+        Authorization: "Bearer ${STAGING_WEBHOOK_TOKEN}"
+        Content-Type: "application/json"
+        X-Environment: "staging"
+
+# Repository configuration for staging
+repositories:
+  # Production-like repository for staging tests
+  - url: https://github.com/company/main-repo
+    auth_token: "${GITHUB_TOKEN_STAGING}"    # Staging GitHub token
+    polling_interval: 180                    # 3 minutes
+    failure_threshold: 4                     # Slightly more lenient than prod
+    
+    skip_patterns:
+      pr_labels:
+        - wip
+        - draft
+        - dependencies
+        - staging-skip
+      
+      check_names:
+        - codecov/*
+        - license/*
+        - security/codeql            # Skip CodeQL in staging
+      
+      authors:
+        - dependabot[bot]
+        - staging-test-bot[bot]
+
+    # Production-like fix categories
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 65     # Slightly more conservative
+        max_files_changed: 12
+      
+      format:
+        enabled: true
+        confidence_threshold: 70
+        max_files_changed: 15
+      
+      test:
+        enabled: true
+        confidence_threshold: 75     # Higher threshold for staging
+        run_full_test_suite: true   # Run full tests to catch issues
+      
+      compilation:
+        enabled: true
+        confidence_threshold: 75
+        max_files_changed: 6
+      
+      security:
+        enabled: false               # Test security escalation
+        always_escalate: true
+      
+      infrastructure:
+        enabled: false               # Test infrastructure escalation
+        always_escalate: true
+      
+      dependencies:
+        enabled: true
+        confidence_threshold: 85     # Conservative for staging
+        max_files_changed: 4
+
+    is_critical: false               # Not critical but important
+    timezone: UTC
+
+    business_hours:
+      start: "08:00"
+      end: "20:00"                  # Extended hours for staging testing
+
+  # Test repository for feature validation
+  - url: https://github.com/company/test-repo
+    auth_token: "${GITHUB_TOKEN_STAGING}"
+    polling_interval: 120           # 2 minutes for faster testing
+    failure_threshold: 6
+    
+    fix_categories:
+      lint:
+        enabled: true
+        confidence_threshold: 55    # Lower threshold for test repo
+        max_files_changed: 20
+      
+      test:
+        enabled: true
+        confidence_threshold: 70
+        run_full_test_suite: false  # Faster feedback for test repo
+    
+    is_critical: false
+    timezone: UTC
+
+# Claude Code SDK configuration
+claude_code_sdk:
+  timeout: 360                      # 6 minutes (longer for thorough testing)
+  max_concurrent_fixes: 3           # Test concurrency limits
+  test_validation_enabled: true    # Always validate tests
+  rollback_enabled: true           # Test rollback functionality
+
+# Staging-specific monitoring and testing settings
+staging_settings:
+  # Enhanced monitoring for staging
+  detailed_metrics: true           # Collect detailed metrics
+  performance_profiling: true     # Enable performance monitoring
+  error_tracking: true            # Enhanced error tracking
+  
+  # Testing configurations
+  chaos_testing_enabled: false    # Enable for resilience testing
+  load_testing_mode: false        # Enable for performance testing
+  integration_tests: true         # Run integration tests
+  
+  # Validation settings
+  strict_validation: true         # Enable stricter validation
+  connectivity_checks: true      # Test all connections
+  permission_auditing: true      # Audit API permissions
+  
+  # Deployment testing
+  blue_green_deployment: false   # Test deployment strategies
+  canary_deployment: false       # Test canary deployments
+  rollback_testing: true         # Test rollback procedures
+
+# Environment-specific feature flags
+feature_flags:
+  new_caching_system: true        # Test new features in staging
+  enhanced_notifications: true   # Test notification improvements
+  advanced_analytics: true       # Test analytics features
+  experimental_llm_providers: false  # Keep experimental features off
