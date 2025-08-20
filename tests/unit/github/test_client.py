@@ -37,7 +37,12 @@ class TestGitHubClientConfig:
     """Test GitHubClientConfig data class."""
 
     def test_github_client_config_defaults(self) -> None:
-        """Test GitHubClientConfig with default values."""
+        """
+        Why: Ensure GitHubClientConfig has sensible defaults for production use
+             without requiring explicit configuration in every deployment.
+        What: Tests that GitHubClientConfig initializes with expected default values.
+        How: Creates instance without parameters and validates all default values.
+        """
         config = GitHubClientConfig()
 
         assert config.base_url == "https://api.github.com"
@@ -49,7 +54,13 @@ class TestGitHubClientConfig:
         assert config.max_concurrent_requests == 10
 
     def test_github_client_config_custom(self) -> None:
-        """Test GitHubClientConfig with custom values."""
+        """
+        Why: Verify GitHubClientConfig accepts custom values for different
+             environments (enterprise, high-load, custom rate limits).
+        What: Tests GitHubClientConfig initialization with custom values.
+        How: Creates instance with all custom parameters and validates
+             they're set correctly.
+        """
         config = GitHubClientConfig(
             base_url="https://api.github.enterprise.com",
             timeout=60,
@@ -143,7 +154,12 @@ class TestGitHubClient:
         return MockResponse(status, payload, headers)
 
     def test_github_client_creation(self, mock_auth: Mock) -> None:
-        """Test GitHubClient creation."""
+        """
+        Why: Ensure GitHubClient initializes properly with required dependencies
+             for reliable API communication.
+        What: Tests GitHubClient creation with auth and config.
+        How: Creates client with mock auth and config, validates initialization state.
+        """
         config = GitHubClientConfig()
         client = GitHubClient(auth=mock_auth, config=config)
 
@@ -153,7 +169,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_context_manager(self, github_client: GitHubClient) -> None:
-        """Test GitHubClient as async context manager."""
+        """
+        Why: Ensure proper resource management with automatic session cleanup
+             to prevent connection leaks in long-running applications.
+        What: Tests GitHubClient as async context manager.
+        How: Uses client in async with block and validates session lifecycle.
+        """
         async with github_client as client:
             assert client._session is not None
             assert not client._session.closed
@@ -163,7 +184,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_close_session(self, github_client: GitHubClient) -> None:
-        """Test closing HTTP session."""
+        """
+        Why: Ensure HTTP sessions are properly closed to prevent resource leaks
+             and connection pool exhaustion.
+        What: Tests closing HTTP session.
+        How: Creates session, closes it explicitly, and validates cleanup.
+        """
         await github_client._ensure_session()
         assert github_client._session is not None
 
@@ -172,7 +198,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_get_request_success(self, github_client: GitHubClient) -> None:
-        """Test successful GET request."""
+        """
+        Why: Verify GET requests work correctly with proper response parsing
+             and rate limit header extraction.
+        What: Tests successful GET request.
+        How: Mocks HTTP response and validates JSON parsing and data extraction.
+        """
         mock_response = self.create_mock_response(
             status=200,
             payload={"login": "testuser", "id": 12345},
@@ -191,7 +222,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_get_request_with_params(self, github_client: GitHubClient) -> None:
-        """Test GET request with query parameters."""
+        """
+        Why: Ensure query parameters are properly encoded and sent with GET requests
+             for filtering and pagination functionality.
+        What: Tests GET request with query parameters.
+        How: Mocks response and validates parameters are handled correctly.
+        """
         mock_response = self.create_mock_response(
             status=200,
             payload={"items": [{"number": 1}, {"number": 2}]},
@@ -208,7 +244,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_post_request_success(self, github_client: GitHubClient) -> None:
-        """Test successful POST request."""
+        """
+        Why: Verify POST requests work correctly for creating resources
+             with proper JSON serialization and response handling.
+        What: Tests successful POST request.
+        How: Mocks 201 response and validates JSON data is sent and parsed.
+        """
         mock_response = self.create_mock_response(
             status=201,
             payload={"number": 123, "title": "Test Issue"},
@@ -225,7 +266,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_delete_request_no_content(self, github_client: GitHubClient) -> None:
-        """Test DELETE request with 204 No Content response."""
+        """
+        Why: Ensure DELETE requests handle 204 No Content responses correctly
+             as this is the standard GitHub API response for successful deletions.
+        What: Tests DELETE request with 204 No Content response.
+        How: Mocks 204 response and validates None is returned.
+        """
         mock_response = self.create_mock_response(status=204)
         github_client._make_request = AsyncMock(return_value=mock_response)  # type: ignore[method-assign]
 
@@ -235,7 +281,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_authentication_error(self, github_client: GitHubClient) -> None:
-        """Test handling of authentication errors."""
+        """
+        Why: Ensure authentication errors are properly detected and reported
+             with clear error messages for debugging.
+        What: Tests handling of authentication errors.
+        How: Mocks 401 response and validates GitHubAuthenticationError is raised.
+        """
         github_client._make_request = AsyncMock(  # type: ignore[method-assign]
             side_effect=GitHubAuthenticationError(
                 "Bad credentials",
@@ -252,7 +303,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_not_found_error(self, github_client: GitHubClient) -> None:
-        """Test handling of 404 Not Found errors."""
+        """
+        Why: Ensure 404 errors are properly handled for non-existent resources
+             with specific exception types for error handling logic.
+        What: Tests handling of 404 Not Found errors.
+        How: Mocks 404 response and validates GitHubNotFoundError is raised.
+        """
         github_client._make_request = AsyncMock(  # type: ignore[method-assign]
             side_effect=GitHubNotFoundError(
                 "Not Found", status_code=404, response_data={"message": "Not Found"}
@@ -266,7 +322,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_validation_error(self, github_client: GitHubClient) -> None:
-        """Test handling of validation errors."""
+        """
+        Why: Ensure validation errors are properly handled for malformed requests
+             with detailed error information from GitHub API.
+        What: Tests handling of validation errors.
+        How: Mocks 422 response and validates GitHubValidationError with details.
+        """
         github_client._make_request = AsyncMock(  # type: ignore[method-assign]
             side_effect=GitHubValidationError(
                 "Validation Failed",
@@ -285,7 +346,12 @@ class TestGitHubClient:
 
     @pytest.mark.asyncio
     async def test_rate_limit_error(self, github_client: GitHubClient) -> None:
-        """Test handling of rate limit errors."""
+        """
+        Why: Ensure rate limit errors are properly handled with reset time information
+             for implementing proper backoff and retry logic.
+        What: Tests handling of rate limit errors.
+        How: Mocks rate limit error and validates GitHubRateLimitError with details.
+        """
         github_client._make_request = AsyncMock(  # type: ignore[method-assign]
             side_effect=GitHubRateLimitError(
                 "API rate limit exceeded",

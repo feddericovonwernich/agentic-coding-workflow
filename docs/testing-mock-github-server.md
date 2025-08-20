@@ -321,6 +321,25 @@ docker-compose -f docker-compose.test.yml build --no-cache github-mock
 docker-compose -f docker-compose.test.yml ps
 ```
 
+### Integration with Project Test Suite
+
+The mock server integrates seamlessly with the project's existing test infrastructure:
+
+```python
+# Test file: tests/integration/github/test_github_integration_mock.py
+class TestGitHubIntegrationMock:
+    """Integration tests for GitHub client using mock server."""
+    
+    @pytest.mark.asyncio
+    async def test_complete_workflow_mock(self, mock_github_client: GitHubClient) -> None:
+        """
+        Why: Validate complete GitHub API workflow without external dependencies.
+        What: Tests authentication, repository access, and rate limit tracking.
+        How: Makes sequential API calls and validates each response component.
+        """
+        # Implementation following project standards...
+```
+
 ### Debug Mode
 
 Enable debug mode for detailed logging:
@@ -378,6 +397,7 @@ docker-compose -f docker-compose.test.yml up github-mock -e FLASK_ENV=developmen
 
 ## Best Practices
 
+### Server Configuration
 1. **Keep response data fresh**: Periodically update response files with latest GitHub data
 2. **Test both paths**: Run tests against both mock and real GitHub when possible
 3. **Version control**: Include response data in version control for consistency
@@ -385,4 +405,140 @@ docker-compose -f docker-compose.test.yml up github-mock -e FLASK_ENV=developmen
 5. **Error scenarios**: Include various error response scenarios in your test data
 6. **Performance baseline**: Use mock server performance as baseline for optimization
 
-This mock server infrastructure provides a robust foundation for testing GitHub API integrations reliably and efficiently.
+### Test Writing Standards
+
+When writing tests that use the mock server, follow the project's testing best practices:
+
+#### 1. Test Documentation (Why/What/How Pattern)
+Every test must include comprehensive docstring documentation:
+
+```python
+@pytest.mark.asyncio
+async def test_get_repository_mock(self, mock_github_client: GitHubClient) -> None:
+    """
+    Why: Ensure mock server returns accurate repository data that matches real GitHub API
+         response format for integration testing without external dependencies.
+    What: Tests retrieving public repository information from mock server.
+    How: Requests specific repository and validates response fields match expected values.
+    """
+    async with mock_github_client:
+        repo = await mock_github_client.get_repo("octocat", "Hello-World")
+
+    # Validate repository structure and expected values
+    assert repo["name"] == "Hello-World", "Repository name must match requested name"
+    assert repo["full_name"] == "octocat/Hello-World", "Full name must match owner/name format"
+    assert "id" in repo, "Repository must have an ID field"
+```
+
+#### 2. Type Annotations
+All test functions must include proper type annotations:
+
+```python
+@pytest.fixture
+def mock_github_client(
+    mock_github_server_url: str, ensure_mock_server_running: str
+) -> GitHubClient:
+    """Create GitHub client configured to use the mock server."""
+    # Implementation...
+
+@pytest.mark.asyncio
+async def test_pagination_mock(self, mock_github_client: GitHubClient) -> None:
+    """Test pagination functionality with mock server."""
+    # Implementation...
+```
+
+#### 3. Descriptive Test Names
+Use clear, descriptive test names that indicate the exact scenario:
+
+```python
+# Good: Specific scenario description
+def test_get_authenticated_user_returns_valid_data_mock()
+def test_pagination_respects_per_page_limit_mock()
+def test_error_handling_returns_404_for_nonexistent_repo_mock()
+
+# Bad: Vague or unclear
+def test_user_mock()
+def test_pagination_mock()
+def test_error_mock()
+```
+
+#### 4. Comprehensive Assertions
+Use specific assertions with helpful error messages:
+
+```python
+# Good: Specific assertions with context
+assert repo["name"] == "Hello-World", "Repository name must match requested name"
+assert isinstance(user["id"], int), "User ID must be an integer"
+assert len(pulls) <= 10, f"Should not exceed per_page limit of 10, got {len(pulls)}"
+
+# Bad: Generic assertions
+assert repo["name"]
+assert user["id"]
+assert pulls
+```
+
+#### 5. Test Independence
+Each test must be completely independent:
+
+```python
+# Good: Each test uses fresh client and data
+@pytest.mark.asyncio
+async def test_concurrent_requests_mock(self, mock_github_client: GitHubClient) -> None:
+    async def fetch_user() -> dict:
+        async with mock_github_client:  # Fresh context
+            return await mock_github_client.get_user()
+    
+    # Test implementation using isolated data
+```
+
+#### 6. Performance Validation
+Include basic performance validation for mock server tests:
+
+```python
+@pytest.mark.asyncio
+async def test_request_timing_mock(self, mock_github_client: GitHubClient) -> None:
+    import time
+
+    async with mock_github_client:
+        start_time = time.perf_counter()  # Use precise timing
+        await mock_github_client.get_user()
+        end_time = time.perf_counter()
+
+        request_time = end_time - start_time
+
+    # Mock server should be very fast
+    assert request_time < 0.5, f"Mock server should be fast, took {request_time:.3f}s"
+```
+
+#### 7. Error Testing
+Test both success and failure scenarios:
+
+```python
+@pytest.mark.asyncio
+async def test_error_handling_not_found_mock(self, mock_github_client: GitHubClient) -> None:
+    from src.github.exceptions import GitHubNotFoundError
+
+    async with mock_github_client:
+        with pytest.raises(GitHubNotFoundError) as exc_info:
+            await mock_github_client.get_repo("nonexistent-user", "nonexistent-repo")
+        
+        # Validate exception details
+        assert "nonexistent-user" in str(exc_info.value), "Exception should mention the user"
+```
+
+#### 8. Fixture Documentation
+Document fixtures with Why/What/How pattern:
+
+```python
+@pytest.fixture(scope="session")
+def ensure_mock_server_running(mock_github_server_url: str) -> str:
+    """
+    Why: Ensure mock server availability before running tests to prevent
+         test failures due to infrastructure issues.
+    What: Verifies the mock GitHub server is running and accessible.
+    How: Attempts connection with retries, skips tests if server unavailable.
+    """
+    # Implementation...
+```
+
+This mock server infrastructure provides a robust foundation for testing GitHub API integrations reliably and efficiently, while following the project's established testing standards.

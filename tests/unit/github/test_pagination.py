@@ -23,14 +23,24 @@ class TestLinkHeader:
     """Test LinkHeader parsing."""
 
     def test_link_header_empty(self) -> None:
-        """Test LinkHeader with empty or None header."""
+        """
+        Why: Ensure LinkHeader handles missing or empty Link headers gracefully
+             when GitHub API responses don't include pagination links.
+        What: Tests LinkHeader with empty or None header.
+        How: Creates LinkHeader with None and validates empty state.
+        """
         link_header = LinkHeader(None)
         assert link_header.links == {}
         assert not link_header.has_next
         assert not link_header.has_prev
 
     def test_link_header_single_link(self) -> None:
-        """Test LinkHeader with single link."""
+        """
+        Why: Verify LinkHeader correctly parses single pagination link
+             (typically 'next' for first page of results).
+        What: Tests LinkHeader with single link.
+        How: Provides single link header and validates URL extraction.
+        """
         header_value = (
             '<https://api.github.com/repos/owner/repo/pulls?page=2>; rel="next"'
         )
@@ -44,7 +54,12 @@ class TestLinkHeader:
         assert not link_header.has_prev
 
     def test_link_header_multiple_links(self) -> None:
-        """Test LinkHeader with multiple links."""
+        """
+        Why: Ensure LinkHeader parses complex Link headers with multiple
+             pagination relationships (next, prev, first, last).
+        What: Tests LinkHeader with multiple links.
+        How: Provides multi-link header and validates all URLs are parsed.
+        """
         header_value = (
             '<https://api.github.com/repos/owner/repo/pulls?page=2>; rel="next", '
             '<https://api.github.com/repos/owner/repo/pulls?page=1>; rel="prev", '
@@ -174,7 +189,12 @@ class TestAsyncPaginator:
         return client
 
     def test_async_paginator_creation(self, mock_client: Mock) -> None:
-        """Test AsyncPaginator creation."""
+        """
+        Why: Ensure AsyncPaginator initializes with proper configuration
+             for efficient pagination through large datasets.
+        What: Tests AsyncPaginator creation.
+        How: Creates paginator with parameters and validates configuration.
+        """
         paginator = AsyncPaginator(
             client=mock_client,
             initial_url="https://api.github.com/repos/owner/repo/pulls",

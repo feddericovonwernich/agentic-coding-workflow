@@ -55,7 +55,12 @@ class TestGitHubIntegration:
 
     @pytest.mark.asyncio
     async def test_get_authenticated_user(self, github_client):
-        """Test getting authenticated user information."""
+        """
+        Why: Verify authentication works with real GitHub API and client
+             properly handles authenticated user endpoints.
+        What: Tests getting authenticated user information.
+        How: Makes real API call to /user endpoint and validates response structure.
+        """
         async with github_client:
             user = await github_client.get_user()
 
@@ -65,7 +70,12 @@ class TestGitHubIntegration:
 
     @pytest.mark.asyncio
     async def test_get_public_repository(self, github_client):
-        """Test getting public repository information."""
+        """
+        Why: Ensure client can fetch public repository data from real GitHub API
+             to validate basic repository access functionality.
+        What: Tests getting public repository information.
+        How: Requests well-known public repository and validates response fields.
+        """
         async with github_client:
             repo = await github_client.get_repo("octocat", "Hello-World")
 
@@ -75,7 +85,12 @@ class TestGitHubIntegration:
 
     @pytest.mark.asyncio
     async def test_list_repository_pulls(self, github_client):
-        """Test listing pull requests for a repository."""
+        """
+        Why: Verify pull request listing works with real GitHub API
+             and pagination handles large repositories correctly.
+        What: Tests listing pull requests for a repository.
+        How: Uses active repository with PRs and validates response structure.
+        """
         async with github_client:
             # Use a repository known to have PRs
             paginator = github_client.list_pulls(
@@ -116,7 +131,12 @@ class TestGitHubIntegration:
 
     @pytest.mark.asyncio
     async def test_rate_limit_tracking(self, github_client):
-        """Test that rate limit information is tracked."""
+        """
+        Why: Ensure rate limit tracking works with real GitHub API headers
+             to prevent API limit violations in production.
+        What: Tests that rate limit information is tracked.
+        How: Makes API request and validates rate limit info is extracted.
+        """
         async with github_client:
             # Make a request to populate rate limit info
             await github_client.get_user()

@@ -21,9 +21,18 @@ from flask import Flask, Response, jsonify, request
 
 
 class MockGitHubServer:
-    """Mock GitHub API server that serves realistic responses."""
+    """
+    Mock GitHub API server that serves realistic responses.
 
-    def __init__(self, responses_dir: Path):
+    Why: Provide realistic GitHub API responses for integration testing
+         without requiring actual GitHub tokens or external dependencies.
+    What: Flask-based HTTP server that mimics GitHub API endpoints
+          with real response data collected from GitHub API.
+    How: Serves static responses from JSON files and generates dynamic
+         responses for arbitrary requests with realistic data structures.
+    """
+
+    def __init__(self, responses_dir: Path) -> None:
         self.app = Flask(__name__)
         self.responses_dir = responses_dir
         self._setup_routes()
@@ -32,7 +41,12 @@ class MockGitHubServer:
         self._response_cache: dict[str, Any] = {}
 
     def _setup_routes(self) -> None:
-        """Set up all the API routes."""
+        """
+        Why: Configure Flask routes to match GitHub API endpoint patterns
+             for comprehensive API simulation.
+        What: Sets up all the API routes that mirror GitHub REST API.
+        How: Defines route handlers for user, repo, rate limit, and other endpoints.
+        """
 
         @self.app.route("/")
         def root():
@@ -44,18 +58,32 @@ class MockGitHubServer:
             )
 
         @self.app.route("/user")
-        def get_user():
-            """Get authenticated user information."""
+        def get_user() -> Response:
+            """
+            Why: Provide authenticated user endpoint for testing authentication flows.
+            What: Returns authenticated user information from static response.
+            How: Serves user.json response file with realistic user data.
+            """
             return self._serve_response("user.json")
 
         @self.app.route("/rate_limit")
-        def get_rate_limit():
-            """Get API rate limit information."""
+        def get_rate_limit() -> Response:
+            """
+            Why: Provide rate limit endpoint for testing rate limiting logic.
+            What: Returns API rate limit information from static response.
+            How: Serves rate_limit.json with realistic GitHub rate limit data.
+            """
             return self._serve_response("rate_limit.json")
 
         @self.app.route("/repos/<owner>/<repo>")
-        def get_repository(owner: str, repo: str):
-            """Get repository information."""
+        def get_repository(owner: str, repo: str) -> Response:
+            """
+            Why: Support repository endpoint for testing repository operations
+                 with both static and dynamic responses.
+            What: Returns repository information based on owner/repo parameters.
+            How: Serves static responses for known repos, generates dynamic responses
+                 for arbitrary repos, returns 404 for test error scenarios.
+            """
             if owner == "octocat" and repo == "Hello-World":
                 return self._serve_response("repo_octocat_hello-world.json")
             elif owner == "nonexistent-user" and repo == "nonexistent-repo":
@@ -65,8 +93,12 @@ class MockGitHubServer:
                 return self._generate_repo_response(owner, repo)
 
         @self.app.route("/repos/<owner>/<repo>/pulls")
-        def get_pulls(owner: str, repo: str):
-            """Get pull requests for a repository."""
+        def get_pulls(owner: str, repo: str) -> Response:
+            """
+            Why: Support pull requests endpoint for testing PR-related functionality.
+            What: Returns pull request list for specified repository.
+            How: Serves static PR data for known repos, empty list for others.
+            """
             if owner == "microsoft" and repo == "vscode":
                 return self._serve_response("pulls_microsoft_vscode.json")
             else:
@@ -74,8 +106,13 @@ class MockGitHubServer:
                 return jsonify([])
 
         @self.app.route("/users/<username>/repos")
-        def get_user_repos(username: str):
-            """Get repositories for a user."""
+        def get_user_repos(username: str) -> Response:
+            """
+            Why: Support user repositories endpoint for testing pagination.
+            What: Returns repository list for specified user.
+            How: Serves static repos for known users, generates repos for pagination
+                 testing, empty list for others.
+            """
             if username == "octocat":
                 return self._serve_response("repos_octocat.json")
             elif username == "torvalds":
@@ -85,8 +122,12 @@ class MockGitHubServer:
                 return jsonify([])
 
         @self.app.route("/repos/<owner>/<repo>/commits/<ref>/check-runs")
-        def get_check_runs(owner: str, repo: str, ref: str):
-            """Get check runs for a commit."""
+        def get_check_runs(owner: str, repo: str, ref: str) -> Response:
+            """
+            Why: Support check runs endpoint for testing CI/CD integration features.
+            What: Returns check runs for specified repository and commit reference.
+            How: Serves static check runs for known repos, empty response for others.
+            """
             if owner == "microsoft" and repo == "vscode" and ref == "main":
                 return self._serve_response("check_runs_microsoft_vscode_main.json")
             else:
@@ -94,7 +135,12 @@ class MockGitHubServer:
                 return jsonify({"total_count": 0, "check_runs": []})
 
         @self.app.errorhandler(404)
-        def not_found(error):
+        def not_found(error) -> Response:
+            """
+            Why: Provide realistic 404 error responses matching GitHub API format.
+            What: Handles 404 errors with GitHub-like error response.
+            How: Returns JSON error response with message and documentation URL.
+            """
             return jsonify(
                 {
                     "message": "Not Found",
@@ -222,7 +268,12 @@ class MockGitHubServer:
         return response
 
     def _add_github_headers(self, response: Response) -> None:
-        """Add realistic GitHub API headers."""
+        """
+        Why: Ensure responses include GitHub-like headers for testing rate limiting
+             and other header-dependent client functionality.
+        What: Adds realistic GitHub API headers to all responses.
+        How: Sets rate limit headers, server info, and content type headers.
+        """
         response.headers["X-RateLimit-Limit"] = "5000"
         response.headers["X-RateLimit-Remaining"] = "4999"
         response.headers["X-RateLimit-Reset"] = "1640995200"
@@ -231,7 +282,11 @@ class MockGitHubServer:
         response.headers["Access-Control-Allow-Origin"] = "*"
 
     def run(self, host: str = "0.0.0.0", port: int = 8080, debug: bool = False) -> None:
-        """Run the mock server."""
+        """
+        Why: Provide simple interface to start the mock server for testing scenarios.
+        What: Starts the Flask server with specified configuration.
+        How: Runs Flask development server with host, port, and debug settings.
+        """
         print(f"🚀 Starting Mock GitHub API Server on {host}:{port}")
         print(f"📁 Serving responses from: {self.responses_dir}")
         self.app.run(host=host, port=port, debug=debug)

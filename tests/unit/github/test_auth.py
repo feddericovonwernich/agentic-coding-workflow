@@ -29,14 +29,24 @@ class TestAuthToken:
     """Test AuthToken data class."""
 
     def test_auth_token_creation(self) -> None:
-        """Test basic AuthToken creation."""
+        """
+        Why: Ensure AuthToken data class initializes correctly with required fields
+             for consistent token representation across authentication providers.
+        What: Tests basic AuthToken creation.
+        How: Creates token with explicit parameters and validates field assignment.
+        """
         token = AuthToken(token="test_token", token_type="Bearer")
         assert token.token == "test_token"
         assert token.token_type == "Bearer"
         assert token.expires_at is None
 
     def test_auth_token_with_expiry(self) -> None:
-        """Test AuthToken with expiry time."""
+        """
+        Why: Verify AuthToken properly handles expiry times for tokens that expire
+             (like JWT tokens) to enable automatic refresh logic.
+        What: Tests AuthToken with expiry time.
+        How: Creates token with future expiry and validates expiration logic.
+        """
         future_time = int(time.time()) + 3600
         token = AuthToken(
             token="test_token", token_type="Bearer", expires_at=future_time
@@ -45,13 +55,23 @@ class TestAuthToken:
         assert token.expires_at == future_time
 
     def test_auth_token_expired(self) -> None:
-        """Test expired AuthToken."""
+        """
+        Why: Ensure AuthToken correctly identifies expired tokens to trigger
+             refresh or reauthentication before API calls.
+        What: Tests expired AuthToken.
+        How: Creates token with past expiry time and validates is_expired property.
+        """
         past_time = int(time.time()) - 3600
         token = AuthToken(token="test_token", token_type="Bearer", expires_at=past_time)
         assert token.is_expired
 
     def test_auth_token_to_header(self) -> None:
-        """Test conversion to authorization header."""
+        """
+        Why: Verify AuthToken generates correct HTTP Authorization headers
+             for different token types used by GitHub API.
+        What: Tests conversion to authorization header.
+        How: Creates token and validates header format matches HTTP standards.
+        """
         token = AuthToken(token="test_token", token_type="Bearer")
         header = token.to_header()
         assert header == {"Authorization": "Bearer test_token"}
@@ -66,18 +86,33 @@ class TestPersonalAccessTokenAuth:
     """Test PersonalAccessTokenAuth provider."""
 
     def test_pat_auth_creation(self) -> None:
-        """Test PAT authentication creation."""
+        """
+        Why: Ensure Personal Access Token authentication initializes correctly
+             with proper token format validation for GitHub API access.
+        What: Tests PAT authentication creation.
+        How: Creates PAT auth with token and validates token storage and type.
+        """
         auth = PersonalAccessTokenAuth("ghp_test_token")
         assert auth._token.token == "ghp_test_token"
         assert auth._token.token_type == "token"
 
     def test_pat_auth_empty_token(self) -> None:
-        """Test PAT authentication with empty token."""
+        """
+        Why: Ensure PAT authentication rejects empty tokens to prevent
+             invalid API requests and provide clear error messages.
+        What: Tests PAT authentication with empty token.
+        How: Attempts creation with empty token and validates exception is raised.
+        """
         with pytest.raises(GitHubAuthenticationError):
             PersonalAccessTokenAuth("")
 
     async def test_pat_auth_get_token(self) -> None:
-        """Test getting PAT token."""
+        """
+        Why: Verify PAT authentication returns valid token objects
+             for API request authentication.
+        What: Tests getting PAT token.
+        How: Creates PAT auth, calls get_token, and validates returned token.
+        """
         auth = PersonalAccessTokenAuth("ghp_test_token")
         token = await auth.get_token()
         assert token.token == "ghp_test_token"
@@ -100,7 +135,12 @@ class TestGitHubAppAuth:
     """Test GitHubAppAuth provider."""
 
     def test_github_app_auth_creation(self) -> None:
-        """Test GitHub App authentication creation."""
+        """
+        Why: Ensure GitHub App authentication initializes with required parameters
+             for JWT-based authentication with GitHub Apps.
+        What: Tests GitHub App authentication creation.
+        How: Creates auth with app credentials and validates parameter storage.
+        """
         auth = GitHubAppAuth(
             app_id="12345",
             private_key="test_private_key",
