@@ -157,9 +157,10 @@ def test_function():
 - **[First Deployment Guide](first-deployment.md)** - Complete production setup
 - **[User Guide](../user-guide/README.md)** - Configuration, monitoring, and troubleshooting
 
-### For Development
+### For Development & Integration
 
-- **[Development Guidelines](../DEVELOPMENT_GUIDELINES.md)** - Contributing to the project
+- **[Development Guidelines](../../DEVELOPMENT_GUIDELINES.md)** - Contributing to the project
+- **[API Documentation](../api/README.md)** - Complete API reference for custom integrations
 - **[Configuration Reference](../config/reference.md)** - Advanced configuration options
 
 ## Troubleshooting Quick Fixes
