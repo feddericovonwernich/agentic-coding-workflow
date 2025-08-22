@@ -1,13 +1,15 @@
-# Database Testing Best Practices
+# Testing Best Practices
 
-This guide provides comprehensive best practices for testing database operations in the agentic coding workflow project.
+This guide provides comprehensive best practices for testing all components of the Agentic Coding Workflow project, including database operations, API integrations, and business logic.
 
 ## Table of Contents
 
 - [General Testing Principles](#general-testing-principles)
-- [Database Testing Strategy](#database-testing-strategy)
+- [Core Testing Requirements](#core-testing-requirements) (references TESTING_GUIDELINES.md)
 - [Unit Testing Guidelines](#unit-testing-guidelines)
 - [Integration Testing Guidelines](#integration-testing-guidelines)
+- [Database Testing Strategy](#database-testing-strategy)
+- [GitHub API Testing](#github-api-testing)
 - [Test Data Management](#test-data-management)
 - [Performance Testing Considerations](#performance-testing-considerations)
 - [Error Testing Best Practices](#error-testing-best-practices)
@@ -30,6 +32,12 @@ def test_repository_handles_constraint_violation():
     """
     # Test implementation
 ```
+
+## Core Testing Requirements
+
+**All core testing requirements and standards are defined in [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md).**
+
+This guide provides additional specialized patterns that complement the authoritative testing standards.
 
 ### 2. Test Naming Convention
 
@@ -288,6 +296,70 @@ async def test_get_prs_with_failed_checks_query(async_session_factory):
         assert len(prs_with_failures) == 1
         assert prs_with_failures[0].id == pr.id
 ```
+
+## GitHub API Testing
+
+### Mock GitHub Server for Integration Testing
+
+For testing GitHub API integrations without requiring real tokens or hitting rate limits, use our Mock GitHub Server:
+
+```python
+@pytest.mark.integration
+async def test_github_client_with_mock_server():
+    """
+    Why: Test GitHub client behavior with realistic API responses
+         without requiring real GitHub tokens or rate limit concerns
+    
+    What: Tests that GitHubClient correctly handles paginated PR responses
+    
+    How: Uses Mock GitHub Server to provide realistic GitHub API responses
+         and verifies client parsing and error handling
+    """
+    # Mock server provides realistic GitHub API responses
+    client = GitHubClient(base_url="http://localhost:8080")  # Mock server URL
+    prs = await client.get_pull_requests("owner/repo")
+    assert len(prs) > 0
+    assert all(pr.number for pr in prs)
+```
+
+**See**: [Mock GitHub Server Setup Guide](../reference/testing/mock-github-server.md) for complete setup instructions.
+
+### Unit Testing GitHub Client
+
+For unit tests, mock the HTTP client directly:
+
+```python
+@pytest.mark.unit
+async def test_github_client_handles_rate_limit():
+    """
+    Why: Ensure GitHub client gracefully handles rate limit responses
+         and implements proper backoff behavior
+    
+    What: Tests that GitHubClient.get_pull_requests() handles 429 responses
+    
+    How: Mocks HTTP client to return 429, verifies retry logic and delays
+    """
+    with patch('aiohttp.ClientSession.get') as mock_get:
+        # Mock rate limit response
+        mock_response = AsyncMock()
+        mock_response.status = 429
+        mock_response.headers = {'X-RateLimit-Reset': '1640995200'}
+        mock_get.return_value.__aenter__.return_value = mock_response
+        
+        client = GitHubClient(token="fake-token")
+        
+        # Should implement exponential backoff
+        with pytest.raises(RateLimitError):
+            await client.get_pull_requests("owner/repo")
+```
+
+### GitHub API Testing Best Practices
+
+1. **Use Mock Server for Integration**: Real API responses without tokens or rate limits
+2. **Mock HTTP Client for Unit Tests**: Fast, isolated testing of client logic
+3. **Test Error Scenarios**: Rate limits, network errors, API changes
+4. **Validate Response Parsing**: Ensure client correctly parses GitHub API responses
+5. **Test Authentication**: Verify token handling and authentication flows
 
 ## Test Data Management
 

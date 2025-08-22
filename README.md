@@ -77,7 +77,9 @@ pytest -m integration
 pytest --cov=src --cov-report=html
 ```
 
-**For Developers:** See [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) for comprehensive testing patterns and best practices.
+**Complete Testing Standards:** [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) - Authoritative testing guidelines and comprehensive patterns.
+
+**Testing Navigation:** [Developer Testing Guide](docs/developer/testing-guide.md) - Overview of testing tools, structure, and specialized guides.
 
 ## Development
 
@@ -153,15 +155,17 @@ agentic-coding-workflow/
 
 ### 👨‍💻 **For Developers** (Contributors)
 
-**Development**
+**Development Guides**
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
 - **[Development Guidelines](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development setup and coding standards
-- **[Testing Guidelines](TESTING_GUIDELINES.md)** - Testing patterns and best practices
+- **[Testing Guidelines](TESTING_GUIDELINES.md)** - Authoritative testing standards and comprehensive patterns
+- **[Testing Guide](docs/developer/testing-guide.md)** - Testing tools, structure, and specialized guides
 - **[Documentation Guidelines](DOCUMENTATION_GUIDELINES.md)** - Documentation standards for maintainers
 
 **Technical Reference**
 - **[System Architecture](DIAGRAMS.md)** - Detailed system diagrams and workflows
 - **[Configuration API](docs/config/README.md)** - Programmatic configuration management
+- **[Testing Reference](docs/testing/README.md)** - Detailed testing guides and specialized techniques
 - **[Security Policy](SECURITY.md)** - Security policies and vulnerability reporting
 - **[Changelog](CHANGELOG.md)** - Version history and release notes
 

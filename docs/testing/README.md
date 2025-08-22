@@ -1,6 +1,8 @@
-# Database Testing Documentation
+# Testing Reference Documentation
 
-This directory contains comprehensive documentation for testing the database layer of the agentic coding workflow project.
+This directory contains detailed testing reference guides for the Agentic Coding Workflow project.
+
+**Looking for testing guidance?** See the [Complete Testing Guide](../developer/testing-guide.md) for comprehensive testing information.
 
 ## Quick Start
 
@@ -9,14 +11,22 @@ This directory contains comprehensive documentation for testing the database lay
 3. **Integration tests**: `pytest tests/integration/ -v`
 4. **With coverage**: `pytest tests/ --cov=src --cov-report=html`
 
-## Documentation Contents
+## Reference Documentation Contents
 
-- [Testing Best Practices](./best-practices.md) - Comprehensive guide to testing standards
-- [Database Testing Guide](./database-testing.md) - Specific guidance for database testing
-- [Test Coverage Guide](./coverage.md) - Coverage analysis and reporting
-- [Testing Methodology](./methodology.md) - Our testing approach and philosophy  
-- [Quality Metrics](./quality-metrics.md) - How we measure and track test quality
-- [Troubleshooting Guide](./troubleshooting.md) - Common issues and solutions
+- **[Testing Best Practices](./best-practices.md)** - Comprehensive guide to testing standards and requirements
+- **[Database Testing Guide](./database-testing.md)** - Specific guidance for database testing patterns
+- **[Test Coverage Guide](./coverage.md)** - Coverage analysis and reporting techniques
+- **[Testing Methodology](./methodology.md)** - Our testing approach and philosophy  
+- **[Quality Metrics](./quality-metrics.md)** - How we measure and track test quality
+- **[Troubleshooting Guide](./troubleshooting.md)** - Common testing issues and solutions
+
+## Specialized Testing References
+
+- **[Mock GitHub Server](../reference/testing/mock-github-server.md)** - GitHub API testing without tokens
+
+## Navigation
+
+**New to testing?** Start with the [Complete Testing Guide](../developer/testing-guide.md) for comprehensive guidance.
 
 ## Test Structure Overview
 
