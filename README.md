@@ -58,15 +58,6 @@ alembic upgrade head
 
 ## Testing
 
-### Test Categories
-
-The project has two levels of testing:
-
-1. **Unit Tests** - Fast, isolated tests with mocked dependencies
-2. **Integration Tests** - Tests against actual PostgreSQL database using testcontainers
-
-### Running Tests
-
 ```bash
 # Run all tests
 pytest
@@ -76,109 +67,43 @@ pytest -m unit
 
 # Run integration tests (requires Docker)
 pytest -m integration
-# Or
-pytest -m real_database
 
 # Run with coverage
 pytest --cov=src --cov-report=html
 ```
 
-### Real Integration Tests
-
-The real integration tests use testcontainers to spin up a PostgreSQL database in Docker:
-
-```bash
-# Ensure Docker is running
-docker info
-
-# Run real database tests
-pytest tests/integration/test_database_real_integration.py -v
-
-# Or run all real database tests
-pytest -m real_database
-```
-
-These tests validate:
-- Actual database connectivity
-- Transaction management
-- Connection pooling
-- Health monitoring
-- Concurrent operations
-- Stress testing with many queries
+For detailed testing guidelines, see [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md).
 
 ## Development
-
-### Local Database
-
-Start a local PostgreSQL instance for development:
 
 ```bash
 # Start development database
 docker-compose up postgres
 
-# Start test database (on port 5433)
-docker-compose up test-postgres
-
-# Stop all services
-docker-compose down
-```
-
-### Database Management
-
-```bash
-# Create a new migration
-alembic revision -m "Description of changes"
-
-# Apply migrations
+# Run database migrations
 alembic upgrade head
 
-# Rollback one migration
-alembic downgrade -1
-
-# View migration history
-alembic history
-```
-
-### Code Quality
-
-```bash
-# Format code
-black src/ tests/
-isort src/ tests/
+# Format and lint code
+ruff format .
+ruff check . --fix
 
 # Type checking
 mypy src/
-
-# Linting
-flake8 src/ tests/
 ```
+
+For comprehensive development guidelines, see [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
 
 ## Configuration
 
-The system uses a hierarchical configuration approach:
+The system uses environment variables for configuration. See `.env.example` for all available options.
 
-1. Environment variables (highest priority)
-2. `.env` file
-3. Default values in code
+Key configuration areas:
+- Database connection and pooling
+- GitHub API authentication
+- LLM provider settings
+- Notification channels
 
-See `.env.example` for all available configuration options.
-
-### Database Configuration
-
-- `DATABASE_URL`: Complete database connection URL (alternative: `DATABASE_DATABASE_URL`)
-- `DATABASE_HOST`: Database host (default: localhost)
-- `DATABASE_PORT`: Database port (default: 5432)
-- `DATABASE_DATABASE`: Database name (default: agentic_workflow)
-- `DATABASE_USERNAME`: Database user (default: postgres)
-- `DATABASE_PASSWORD`: Database password (required)
-
-### Connection Pool Settings
-
-- `DATABASE_POOL_SIZE`: Base pool size (default: 20)
-- `DATABASE_POOL_MAX_OVERFLOW`: Additional connections when pool exhausted (default: 30)
-- `DATABASE_POOL_TIMEOUT`: Timeout to get connection from pool (default: 30s)
-- `DATABASE_POOL_RECYCLE`: Connection recycle time (default: 3600s)
-- `DATABASE_POOL_PRE_PING`: Enable connection health checks (default: true)
+For detailed configuration documentation, see the configuration section in [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
 
 ## Project Structure
 
@@ -201,27 +126,50 @@ agentic-coding-workflow/
 └── docker-compose.yml     # Local development services
 ```
 
+## Documentation
+
+### 📚 Complete Documentation
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and development workflow
+- **[DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development best practices and coding standards
+- **[TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)** - Testing guidelines and patterns for reliable code
+- **[DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md)** - Documentation standards and best practices for maintainers
+- **[SECURITY.md](SECURITY.md)** - Security policies and vulnerability reporting
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+
+### 🚀 Quick Links
+- **[System Architecture](DIAGRAMS.md)** - Detailed system diagrams and workflows
+- **[API Documentation](docs/api/)** - GitHub client and configuration APIs *(coming soon)*
+- **[Deployment Guide](docs/deployment/)** - Production deployment instructions *(coming soon)*
+- **[User Guide](docs/user-guide/)** - End-user documentation *(coming soon)*
+
 ## Contributing
 
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
+
+- Setting up your development environment
+- Code style and standards ([DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md))
+- Testing requirements ([TESTING_GUIDELINES.md](TESTING_GUIDELINES.md))
+- Pull request process
+- Community guidelines
+
+### Quick Start for Contributors
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Follow the [development setup guide](CONTRIBUTING.md#getting-started)
+3. Read the [development best practices](DEVELOPMENT_GUIDELINES.md)
+4. Ensure your tests follow our [testing guidelines](TESTING_GUIDELINES.md)
+5. Submit a pull request
+
+## Security
+
+Security is important to us. Please see our [Security Policy](SECURITY.md) for information on:
+- Reporting vulnerabilities
+- Security best practices
+- Supported versions
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Recent Updates
-
-### Pydantic V2 Migration
-The database infrastructure has been upgraded to Pydantic V2 for improved performance and features:
-- Updated configuration validation and environment variable handling
-- Enhanced type safety and error reporting  
-- Improved async compatibility
-
-**Breaking Change**: Environment variable `DATABASE_NAME` is now `DATABASE_DATABASE` to align with Pydantic V2 field naming conventions.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
