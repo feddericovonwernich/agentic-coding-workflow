@@ -162,8 +162,17 @@ agentic-coding-workflow/
 - **[Testing Guide](docs/developer/testing-guide.md)** - Testing tools, structure, and specialized guides
 - **[Documentation Guidelines](DOCUMENTATION_GUIDELINES.md)** - Documentation standards for maintainers
 
+**API Integration**
+- **[API Documentation](docs/api/README.md)** - Complete API reference with examples
+- **[GitHub Client API](docs/api/github-client.md)** - GitHub integration patterns and best practices
+- **[Database API](docs/api/database-api.md)** - Models, repositories, and database operations
+- **[Configuration API](docs/api/configuration-api.md)** - Configuration management and hot reload
+- **[Worker Interfaces](docs/api/worker-interfaces.md)** - Custom worker implementation guide
+- **[Webhook API](docs/api/webhooks.md)** - GitHub webhooks and event processing
+
 **Technical Reference**
 - **[System Architecture](DIAGRAMS.md)** - Detailed system diagrams and workflows
+- **[API Documentation](docs/api/README.md)** - Comprehensive API reference and integration guides
 - **[Configuration API](docs/config/README.md)** - Programmatic configuration management
 - **[Testing Reference](docs/testing/README.md)** - Detailed testing guides and specialized techniques
 - **[Security Policy](SECURITY.md)** - Security policies and vulnerability reporting

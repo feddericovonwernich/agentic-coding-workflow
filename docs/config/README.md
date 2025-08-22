@@ -6,6 +6,7 @@ The Agentic Coding Workflow system uses a comprehensive configuration management
 
 - **[Getting Started](getting-started.md)** - Set up configuration in < 15 minutes
 - **[Configuration Reference](reference.md)** - Complete field documentation
+- **[API Documentation](../api/configuration-api.md)** - Programmatic configuration management
 - **[Tools & Utilities](tools.md)** - Validation and comparison tools
 - **[Security Guide](security.md)** - Best practices for credential management
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions

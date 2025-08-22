@@ -38,6 +38,11 @@ This guide serves three main user types:
 - **[Performance Tuning](performance.md)** - Optimize for your workload *(coming soon)*
 - **[Integration Guide](integrations.md)** - Connect with other tools *(coming soon)*
 
+### Developer Integration
+- **[API Documentation](../api/README.md)** - Complete API reference for custom integrations
+- **[Configuration API](../api/configuration-api.md)** - Programmatic configuration management
+- **[Worker Implementation](../api/worker-interfaces.md)** - Build custom workers for specialized tasks
+
 ## 🚀 Quick Navigation by Task
 
 ### "I want to get started quickly"
