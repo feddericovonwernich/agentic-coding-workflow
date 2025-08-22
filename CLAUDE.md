@@ -64,23 +64,20 @@ GitHub → Monitor → Queue → Analyzer → Router → Fix/Review/Notify → G
 
 ### Testing Requirements
 
-Every test must include a comment block explaining:
-- **Why**: The reason this test exists
-- **What**: What functionality it tests
-- **How**: The approach used to test it
+All testing follows our comprehensive testing standards. **See [Testing Guide](docs/developer/testing-guide.md)** for complete testing documentation.
 
-Example:
+**Key Requirements:**
+- Every test must include Why/What/How documentation
+- Use appropriate test types (unit vs integration)
+- Follow our testing best practices and patterns
+
+**Quick Reference:**
 ```python
-def test_analyzer_categorizes_lint_failures():
+def test_function_name():
     """
-    Why: Ensure the analyzer correctly identifies lint failures to route them
-         for automatic fixing rather than human escalation
-    
-    What: Tests that CheckAnalyzer.analyze() returns category='lint' for
-          eslint failure logs
-    
-    How: Provides sample eslint failure logs and verifies the returned
-         analysis has the correct category and confidence score
+    Why: [Business/technical reason for this test]
+    What: [Specific functionality being tested]  
+    How: [Methodology and approach used]
     """
     # Test implementation
 ```
