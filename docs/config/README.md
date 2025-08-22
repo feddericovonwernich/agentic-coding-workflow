@@ -6,6 +6,7 @@ The Agentic Coding Workflow system uses a comprehensive configuration management
 
 - **[Getting Started](getting-started.md)** - Set up configuration in < 15 minutes
 - **[Configuration Reference](reference.md)** - Complete field documentation
+- **[Tools & Utilities](tools.md)** - Validation and comparison tools
 - **[Security Guide](security.md)** - Best practices for credential management
 - **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
 - **[Examples](../config/examples/)** - Environment and use case examples
@@ -88,6 +89,7 @@ The system supports loading configuration from multiple sources in priority orde
 
 - 🚀 **New to the system?** Start with [Getting Started](getting-started.md)
 - 📖 **Need reference docs?** See [Configuration Reference](reference.md)
+- 🔧 **Need validation tools?** Check [Tools & Utilities](tools.md)
 - 🔒 **Security concerns?** Check [Security Guide](security.md)
 - 🐛 **Having issues?** Visit [Troubleshooting](troubleshooting.md)
 - 💡 **Looking for examples?** Browse [Configuration Examples](../config/examples/)

@@ -132,6 +132,62 @@ for repo in config.repositories:
     print(f"Monitoring repository: {repo.url}")
 ```
 
+## Programmatic Usage
+
+### Loading Configuration
+
+```python
+from src.config import load_config, get_config
+
+# Load configuration from file
+config = load_config("config.yaml")
+
+# Or auto-discover configuration file
+config = load_config()  # Searches standard locations
+
+# Access configuration
+database_url = config.database.url
+llm_provider = config.llm[config.default_llm_provider]
+```
+
+### Configuration Loading Hierarchy
+
+The system searches for configuration files in this order:
+
+1. Explicit path provided to `load_config()`
+2. Current working directory (`./config.yaml`)
+3. `AGENTIC_CONFIG_PATH` environment variable
+4. User config directory (`~/.agentic/config.yaml`)
+5. System config directory (`/etc/agentic/config.yaml`)
+
+### Testing Support
+
+For testing, you can create minimal configurations:
+
+```python
+from src.config import create_minimal_config
+
+# Create minimal config for testing
+test_config = create_minimal_config(
+    database_url="sqlite:///test.db",
+    github_token="test-token",
+    repo_url="https://github.com/test/repo"
+)
+```
+
+### Configuration Hot Reload
+
+Configuration can be reloaded without restarting the application:
+
+```python
+from src.config import reload_config
+
+# Reload configuration from the same source
+updated_config = reload_config()
+```
+
+Note: Hot reload should be used carefully in production environments as it may cause inconsistent state if workers are processing tasks during reload.
+
 ## Common Quick Setup Scenarios
 
 ### Local Development (SQLite + In-Memory Queue)
