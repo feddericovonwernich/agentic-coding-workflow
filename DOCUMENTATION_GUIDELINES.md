@@ -783,7 +783,7 @@ docker-compose up
 - [Installation Guide](docs/installation.md) - Detailed setup instructions
 - [Configuration Reference](docs/configuration.md) - All configuration options
 - [API Documentation](docs/api.md) - REST API reference
-- [Development Guide](DEVELOPMENT.md) - Contributing and development setup
+- [Development Guide](DEVELOPMENT_GUIDELINES.md) - Contributing and development setup
 - [Architecture Overview](docs/architecture.md) - System design and components
 
 ## 🤝 Contributing

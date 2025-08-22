@@ -205,9 +205,9 @@ agentic-coding-workflow/
 
 ### 📚 Complete Documentation
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and development workflow
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Comprehensive development best practices and coding standards
-- **[TESTING.md](TESTING.md)** - Testing guidelines and patterns for reliable code
-- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Documentation standards and best practices for maintainers
+- **[DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development best practices and coding standards
+- **[TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)** - Testing guidelines and patterns for reliable code
+- **[DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md)** - Documentation standards and best practices for maintainers
 - **[SECURITY.md](SECURITY.md)** - Security policies and vulnerability reporting
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
 
@@ -222,8 +222,8 @@ agentic-coding-workflow/
 We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
 
 - Setting up your development environment
-- Code style and standards ([DEVELOPMENT.md](DEVELOPMENT.md))
-- Testing requirements ([TESTING.md](TESTING.md))
+- Code style and standards ([DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md))
+- Testing requirements ([TESTING_GUIDELINES.md](TESTING_GUIDELINES.md))
 - Pull request process
 - Community guidelines
 
@@ -231,8 +231,8 @@ We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING
 
 1. Fork the repository
 2. Follow the [development setup guide](CONTRIBUTING.md#getting-started)
-3. Read the [development best practices](DEVELOPMENT.md)
-4. Ensure your tests follow our [testing guidelines](TESTING.md)
+3. Read the [development best practices](DEVELOPMENT_GUIDELINES.md)
+4. Ensure your tests follow our [testing guidelines](TESTING_GUIDELINES.md)
 5. Submit a pull request
 
 ## Security

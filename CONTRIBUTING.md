@@ -77,8 +77,8 @@ git checkout -b feature/issue-number-brief-description
 
 ### 3. Make Your Changes
 
-- Write clean, readable code following our [Development Guidelines](DEVELOPMENT.md)
-- Add tests for new functionality following our [Testing Guidelines](TESTING.md)
+- Write clean, readable code following our [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
+- Add tests for new functionality following our [Testing Guidelines](TESTING_GUIDELINES.md)
 - Update documentation as needed
 - Keep commits focused and atomic
 
@@ -199,7 +199,7 @@ We use automated tools to ensure consistent code style:
 5. **Functions**: Keep functions small and focused on a single responsibility
 6. **Error Handling**: Use custom exceptions and provide helpful error messages
 
-For detailed guidelines, see [DEVELOPMENT.md](DEVELOPMENT.md).
+For detailed guidelines, see [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
 
 ## Testing Requirements
 
@@ -228,7 +228,7 @@ def test_analyzer_categorizes_lint_failures():
     # Test implementation
 ```
 
-For detailed testing guidelines, see [TESTING.md](TESTING.md).
+For detailed testing guidelines, see [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md).
 
 ## Documentation
 
@@ -243,7 +243,7 @@ Update documentation when you:
 
 ### Documentation Standards
 
-For comprehensive documentation guidelines, see [DOCUMENTATION.md](DOCUMENTATION.md). Key points:
+For comprehensive documentation guidelines, see [DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md). Key points:
 
 - Use clear, concise language following our style guide
 - Include complete, runnable code examples
@@ -256,9 +256,9 @@ For comprehensive documentation guidelines, see [DOCUMENTATION.md](DOCUMENTATION
 ### Documentation Locations
 
 - `README.md`: Project overview and quick start
-- `DEVELOPMENT.md`: Development guidelines and best practices
-- `TESTING.md`: Testing guidelines and patterns
-- `DOCUMENTATION.md`: Documentation standards and best practices
+- `DEVELOPMENT_GUIDELINES.md`: Development guidelines and best practices
+- `TESTING_GUIDELINES.md`: Testing guidelines and patterns
+- `DOCUMENTATION_GUIDELINES.md`: Documentation standards and best practices
 - `docs/`: Detailed technical documentation
 - Code docstrings: API documentation
 

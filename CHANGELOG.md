@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Repository pattern implementation for database operations
 - Comprehensive testing infrastructure with unit and integration tests
 - Standard repository documentation files (LICENSE, CONTRIBUTING.md, SECURITY.md, CHANGELOG.md)
-- Development and testing best practices documentation (DEVELOPMENT.md, TESTING.md)
+- Development and testing best practices documentation (DEVELOPMENT_GUIDELINES.md, TESTING_GUIDELINES.md)
 
 ### Changed
 - Enhanced test documentation with Why/What/How pattern requirements
