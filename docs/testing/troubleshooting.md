@@ -1,6 +1,8 @@
 # Testing Troubleshooting Guide
 
-This guide provides solutions for common issues encountered when running database tests in the agentic coding workflow project.
+> **📚 Navigation**: This guide covers **testing-specific troubleshooting and debugging**. For development environment issues, see **[Developer Debugging Guide](../developer/debugging.md)**. For configuration problems, see **[Configuration Troubleshooting](../config/troubleshooting.md)**. For environment setup, see **[Installation Troubleshooting](../getting-started/installation.md#troubleshooting)**.
+
+This guide provides solutions for common issues encountered when running tests, setting up test environments, and debugging test failures in the agentic coding workflow project.
 
 ## Table of Contents
 

@@ -2,6 +2,8 @@
 
 Welcome to the Agentic Coding Workflow User Guide! This documentation is designed for users who want to configure, operate, and monitor the automated PR monitoring and fixing system.
 
+> **📚 Navigation**: This is the **user operations hub**. For initial installation, see [Installation Guide](../getting-started/installation.md). For developer contribution workflows, see [Developer Guide](../developer/README.md). For API integration, see [API Documentation](../api/README.md).
+
 ## 👥 User Personas
 
 This guide serves three main user types:
@@ -58,7 +60,8 @@ This guide serves three main user types:
 → [Configuration Guide](configuration.md#notification-configuration)
 
 ### "Something isn't working correctly"
-→ [Troubleshooting Guide](troubleshooting.md)
+→ [🛠️ Troubleshooting Hub](../troubleshooting-hub.md) - **Start here** to find the right guide for your issue type
+→ [Operational Troubleshooting](troubleshooting.md) - For operational and system behavior issues
 
 ### "I want to monitor system health"
 → [Monitoring Guide](monitoring.md)
@@ -201,9 +204,11 @@ Key security aspects for users:
 
 ### Self-Service Resources
 
-1. **[Troubleshooting Guide](troubleshooting.md)** - Common issues and solutions
-2. **[Configuration Reference](../config/reference.md)** - Complete configuration options
-3. **[FAQ](../FAQ.md)** - Frequently asked questions *(coming soon)*
+1. **[🛠️ Troubleshooting Hub](../troubleshooting-hub.md)** - **Navigation center** - find the right troubleshooting guide for your issue type
+2. **[Operational Troubleshooting](troubleshooting.md)** - Common operational issues and solutions
+3. **[Installation Troubleshooting](../getting-started/installation.md#troubleshooting)** - Environment setup and startup problems
+4. **[Configuration Reference](../config/reference.md)** - Complete configuration options
+5. **[FAQ](../FAQ.md)** - Frequently asked questions *(coming soon)*
 
 ### Community Support
 
@@ -273,4 +278,4 @@ Track these to measure the value of your deployment:
 - 🚀 **New User**: [Quick Start Guide](../getting-started/README.md)
 - ⚙️ **Configuration**: [Configuration Guide](configuration.md)
 - 📊 **Monitoring**: [Monitoring Guide](monitoring.md)
-- 🔧 **Issues**: [Troubleshooting Guide](troubleshooting.md)
+- 🔧 **Issues**: [🛠️ Troubleshooting Hub](../troubleshooting-hub.md)

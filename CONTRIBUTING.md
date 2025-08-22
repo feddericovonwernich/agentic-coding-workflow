@@ -1,6 +1,8 @@
 # Contributing to Agentic Coding Workflow
 
-Thank you for your interest in contributing to the Agentic Coding Workflow project! This document provides guidelines and instructions for contributing to this repository.
+> **📚 Developer Resources**: For comprehensive development guidance, see **[docs/developer/README.md](docs/developer/README.md)** - the complete developer documentation hub including onboarding, setup, and best practices.
+
+Thank you for your interest in contributing to the Agentic Coding Workflow project! This document focuses on the **contribution process and community guidelines**. For development setup, coding standards, and daily development workflows, see our comprehensive developer documentation.
 
 ## Table of Contents
 
@@ -20,34 +22,25 @@ This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participatin
 
 ## Getting Started
 
-### Prerequisites
+### 🚀 **New to the Project?**
 
-Before contributing, ensure you have:
+**Complete Developer Onboarding**: Follow our structured **[30-day onboarding guide](docs/developer/onboarding.md)** which includes:
+- Prerequisites and setup checklist
+- Development environment configuration
+- First week goals and milestones
+- Integration with team practices
 
-- Python 3.11 or higher
-- Docker (for running tests with testcontainers)
-- Git configured with your GitHub account
-- A fork of this repository
+### ⚡ **Quick Start for Contributors**
 
-### Setting Up Your Development Environment
+1. **Fork the repository**
+2. **Setup**: Follow [Local Development Setup](docs/developer/local-development.md)
+3. **Standards**: Review [Development Best Practices](docs/developer/best-practices.md)
+4. **Verify**: Run `pytest tests/unit/ -v` to ensure setup works
 
-**Quick Setup:**
-1. Fork the repository
-2. Follow the [Development Guidelines](DEVELOPMENT_GUIDELINES.md) setup section
-3. Complete the [Installation Guide](docs/getting-started/installation.md) development setup
-4. Verify with: `pytest tests/unit/ -v`
-
-**Key Development Commands:**
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Set up code quality hooks
-pre-commit install
-
-# Run development database
-docker-compose up postgres
-```
+**Essential Resources:**
+- **[Developer Guide Hub](docs/developer/README.md)** - Complete navigation
+- **[Local Development Setup](docs/developer/local-development.md)** - Environment configuration
+- **[Testing Guide](docs/developer/testing-guide.md)** - Testing overview and requirements
 
 ## Development Process
 
@@ -66,26 +59,21 @@ git checkout -b feature/issue-number-brief-description
 
 ### 3. Make Your Changes
 
-- Write clean, readable code following our [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
-- Add tests for new functionality following our [Testing Guidelines](TESTING_GUIDELINES.md)
-- Update documentation as needed
-- Keep commits focused and atomic
+- **Code Quality**: Follow [Development Best Practices](docs/developer/best-practices.md) and [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md)
+- **Testing**: Add tests following [Testing Guide](docs/developer/testing-guide.md) and [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)
+- **Documentation**: Update relevant documentation
+- **Commits**: Keep commits focused and atomic
 
 ### 4. Test Your Changes
 
-```bash
-# Run formatters
-ruff format .
-ruff check . --fix
+**Quick Commands**: See [Local Development Setup](docs/developer/local-development.md) for complete development workflows.
 
-# Run type checking
-mypy src/
+```bash
+# Code quality checks
+ruff format . && ruff check . --fix && mypy src/
 
 # Run tests
-pytest tests/ -v
-
-# Check test coverage
-pytest tests/ --cov=src --cov-report=html
+pytest tests/ -v --cov=src
 ```
 
 ### 5. Commit Your Changes
@@ -159,10 +147,10 @@ Types:
    ```
 
 4. **Code Review**
+   - Follow our [Code Review Guidelines](docs/developer/code-review.md)
    - Address reviewer feedback promptly
    - Keep discussions professional and constructive
    - Be open to suggestions and alternative approaches
-   - Update your PR based on feedback
 
 5. **Merging**
    - PRs require at least one approval
@@ -171,53 +159,39 @@ Types:
 
 ## Coding Standards
 
-### Python Code Style
+> **📚 Complete Standards**: See [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) for comprehensive development standards and [Development Best Practices](docs/developer/best-practices.md) for practical guidance.
 
-We use automated tools to ensure consistent code style:
+### Quick Reference
 
-- **Formatter**: `ruff format` (Black-compatible)
-- **Linter**: `ruff check` (includes flake8, isort, and more)
-- **Type Checker**: `mypy` with strict settings
+**Code Quality Tools:**
+- **Formatter**: `ruff format` 
+- **Linter**: `ruff check`
+- **Type Checker**: `mypy`
 
-### Key Guidelines
+**Key Requirements:**
+- Type hints for all functions
+- Comprehensive docstrings for public APIs
+- Descriptive naming conventions
+- Single responsibility functions
+- Proper error handling
 
-1. **Type Hints**: All functions must have type annotations
-2. **Docstrings**: All public functions and classes need comprehensive docstrings
-3. **Comments**: Explain "why" not "what" - code should be self-documenting
-4. **Naming**: Use descriptive names (prefer `calculate_repository_health_score` over `calc_score`)
-5. **Functions**: Keep functions small and focused on a single responsibility
-6. **Error Handling**: Use custom exceptions and provide helpful error messages
-
-For detailed guidelines, see [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
+**Daily Workflow**: Follow [Local Development Setup](docs/developer/local-development.md) for complete development commands and workflows.
 
 ## Testing Requirements
 
-### Test Coverage
+> **📚 Complete Testing Standards**: See [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) for comprehensive testing methodology and [Testing Guide](docs/developer/testing-guide.md) for daily testing workflows.
 
+### Essential Requirements
+
+**Test Coverage:**
 - New features must include comprehensive tests
 - Bug fixes must include regression tests
-- Maintain or improve overall test coverage (minimum 80%)
+- Maintain minimum 80% test coverage
 
-### Test Structure
+**Test Documentation Pattern:**
+All tests must include Why/What/How documentation as defined in [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md).
 
-Every test must include the Why/What/How documentation pattern:
-
-```python
-def test_analyzer_categorizes_lint_failures():
-    """
-    Why: Ensure the analyzer correctly identifies lint failures to route them
-         for automatic fixing rather than human escalation
-    
-    What: Tests that CheckAnalyzer.analyze() returns category='lint' for
-          eslint failure logs
-    
-    How: Provides sample eslint failure logs and verifies the returned
-         analysis has the correct category and confidence score
-    """
-    # Test implementation
-```
-
-For detailed testing guidelines, see [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md).
+**Testing Workflow**: Follow [Testing Guide](docs/developer/testing-guide.md) for test types, tools, and daily testing commands.
 
 ## Documentation
 
@@ -232,24 +206,20 @@ Update documentation when you:
 
 ### Documentation Standards
 
-For comprehensive documentation guidelines, see [DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md). Key points:
+> **📚 Complete Documentation Standards**: See [DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md) for comprehensive guidelines.
 
-- Use clear, concise language following our style guide
-- Include complete, runnable code examples
-- Write for both human developers and AI agents
-- Follow the Why/What/How pattern for complex explanations
-- Keep documentation close to code (docstrings for API docs)
-- Update both user and developer documentation as needed
+**Key Requirements:**
+- Clear, concise language with runnable examples
+- Why/What/How pattern for complex explanations
+- Update both user and developer documentation
 - Ensure all links work and references are valid
 
-### Documentation Locations
+### Documentation Structure
 
-- `README.md`: Project overview and quick start
-- `DEVELOPMENT_GUIDELINES.md`: Development guidelines and best practices
-- `TESTING_GUIDELINES.md`: Testing guidelines and patterns
-- `DOCUMENTATION_GUIDELINES.md`: Documentation standards and best practices
-- `docs/`: Detailed technical documentation
-- Code docstrings: API documentation
+**Developer Documentation**: [docs/developer/README.md](docs/developer/README.md) - Complete navigation
+**User Documentation**: [docs/user-guide/README.md](docs/user-guide/README.md) - User workflows
+**API Documentation**: [docs/api/README.md](docs/api/README.md) - Technical reference
+**Standards**: Root-level .md files (DEVELOPMENT_GUIDELINES.md, TESTING_GUIDELINES.md, etc.)
 
 ## Issue Reporting
 

@@ -2,6 +2,8 @@
 
 Get the Agentic Coding Workflow system running in under 15 minutes! This guide will help you set up automated PR monitoring and fixing for your GitHub repositories.
 
+> **📚 Navigation**: This is the **quick start guide** for new users. For production deployment, see [Installation Guide](installation.md). For user configuration scenarios, see [User Configuration Guide](../user-guide/configuration.md). For development setup, see [Developer Onboarding](../developer/onboarding.md).
+
 ## What You'll Achieve
 
 By the end of this guide, you'll have:
@@ -191,8 +193,10 @@ curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit
 
 ## Support
 
-- **Quick Issues**: Check [User Troubleshooting Guide](../user-guide/troubleshooting.md)
-- **Configuration Help**: See [User Configuration Guide](../user-guide/configuration.md)
+- **🛠️ Issues**: [Troubleshooting Hub](../troubleshooting-hub.md) - **Navigation center** to find the right troubleshooting guide
+- **Quick Operational Issues**: [User Troubleshooting Guide](../user-guide/troubleshooting.md)
+- **Installation Issues**: [Installation Troubleshooting](installation.md#troubleshooting)
+- **Configuration Help**: [User Configuration Guide](../user-guide/configuration.md)
 - **Bugs/Features**: [Create an issue](https://github.com/feddericovonwernich/agentic-coding-workflow/issues)
 
 ---

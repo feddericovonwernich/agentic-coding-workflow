@@ -1,6 +1,10 @@
 # User Configuration Guide
 
-This guide helps users configure the Agentic Coding Workflow system for their specific needs. Unlike the technical [Configuration Reference](../config/reference.md), this guide focuses on practical user scenarios and common configuration patterns.
+> **📚 Navigation**: This guide provides **practical configuration scenarios and templates** for users setting up the Agentic Coding Workflow system. For technical configuration details, see **[Configuration Technical Guide](../config/getting-started.md)**. For complete environment setup, see **[Installation Guide](../getting-started/installation.md)**.
+
+## Purpose
+
+This guide focuses on **real-world user scenarios** and provides ready-to-use configuration templates for different team sizes, use cases, and environments. It's designed for users who want to quickly configure the system for their specific needs.
 
 ## Table of Contents
 
@@ -644,33 +648,25 @@ monitoring:
 
 ## Configuration Best Practices
 
-### Security Best Practices
+### Security Best Practices for Users
 
-1. **Use environment variables** for all sensitive data:
+1. **Always use environment variables** for secrets in your templates:
 ```yaml
-# ✅ Good
+# ✅ Correct approach in user configurations
 github_token: "${GITHUB_TOKEN}"
 api_key: "${ANTHROPIC_API_KEY}"
 
-# ❌ Bad - never put secrets in config files
-github_token: "ghp_actual_token_here"
+# ❌ Never put actual secrets in config files
 ```
 
-2. **Use least-privilege GitHub tokens**:
-```bash
-# Only grant necessary scopes
-# For public repos: public_repo
-# For private repos: repo
-# Never use admin or org-level permissions unless required
-```
+2. **Choose appropriate GitHub token scopes** for your repositories:
+   - **Public repositories**: Use `public_repo` scope only
+   - **Private repositories**: Use `repo` scope 
+   - **Organization repositories**: Add `read:org` if needed
 
-3. **Rotate credentials regularly**:
-```yaml
-# Add rotation reminders to your config
-# Last rotated: 2024-01-15
-# Next rotation: 2024-04-15
-github_token: "${GITHUB_TOKEN}"
-```
+3. **Plan credential rotation** into your team processes
+
+> **For comprehensive security implementation details**, see the **[Configuration Security Guide](../config/security.md)**.
 
 ### Performance Best Practices
 
@@ -808,24 +804,25 @@ repositories:
         action: "escalate"
 ```
 
-### Configuration Validation
+### Configuration Testing for Users
 
-Always validate your configuration before deploying:
+Before deploying your configuration changes:
 
-```bash
-# Validate configuration syntax
-python -m src.config.tools.validate --config config.yaml
+1. **Start with a test repository** to validate your configuration
+2. **Use conservative settings** initially (high confidence thresholds, limited auto-fix categories)
+3. **Monitor results closely** for the first few days after configuration changes
+4. **Gradually expand** auto-fix capabilities as you gain confidence
 
-# Test with dry-run mode
-python -m src.workers.monitor --dry-run --config config.yaml
+> **For technical validation commands and tools**, see the **[Configuration Technical Guide](../config/getting-started.md#configuration-validation-and-testing)**.
 
-# Check connectivity to all services
-python -m src.config.tools.validate --check-connectivity
-```
+### User Configuration Resources
 
----
+#### Next Steps
+- **[Monitoring Guide](monitoring.md)** - Set up dashboards and track system performance
+- **[Troubleshooting Guide](troubleshooting.md)** - Resolve common configuration issues
 
-**Next Steps:**
-- **[Monitoring Guide](monitoring.md)** - Set up dashboards and alerts
-- **[Troubleshooting Guide](troubleshooting.md)** - Resolve common issues
-- **[Configuration Reference](../config/reference.md)** - Complete technical reference
+#### Configuration Documentation
+- **[Technical Configuration](../config/getting-started.md)** - Developer-focused configuration details
+- **[Configuration Reference](../config/reference.md)** - Complete technical documentation
+- **[Configuration Security](../config/security.md)** - Security implementation details
+- **[Installation Guide](../getting-started/installation.md)** - Environment setup and API keys

@@ -1,86 +1,216 @@
-# Configuration Troubleshooting Guide
+# Configuration Technical Troubleshooting Guide
 
-This guide helps you diagnose and resolve common configuration issues in the Agentic Coding Workflow system. Issues are organized by category with symptoms, causes, and solutions.
+> **📚 Navigation**: This guide covers **technical configuration validation and debugging issues**. For environment setup problems, see **[Installation Troubleshooting](../getting-started/installation.md#troubleshooting)**. For operational issues after configuration, see **[User Troubleshooting Guide](../user-guide/troubleshooting.md)**.
 
-## Quick Diagnosis
+This guide helps developers and advanced users diagnose and resolve technical configuration system issues, validation problems, and programmatic configuration management challenges.
 
-### Configuration Not Loading
-```bash
-# Check if config file exists
-ls -la config.yaml
+## Table of Contents
 
-# Validate configuration
-python -c "from src.config import load_config; load_config()"
+- [Quick Configuration Diagnostics](#quick-configuration-diagnostics)
+- [Schema Validation Issues](#schema-validation-issues)
+- [Environment Variable Substitution](#environment-variable-substitution)
+- [Configuration Loading Problems](#configuration-loading-problems)
+- [Programmatic Configuration Issues](#programmatic-configuration-issues)
+- [Configuration Performance Issues](#configuration-performance-issues)
+- [Advanced Debugging](#advanced-debugging)
+- [Getting Help](#getting-help)
 
-# Check environment variables
-env | grep -E "(DATABASE_URL|GITHUB_TOKEN|ANTHROPIC_API_KEY)"
-```
+## Quick Configuration Diagnostics
 
-### Environment Variables Not Set
-```bash
-# Test environment variable substitution
-python -c "
-import os
-from src.config.models import BaseConfigModel
-test_config = {'url': '${TEST_VAR:default_value}'}
-result = BaseConfigModel.substitute_env_vars(test_config)
-print(f'Result: {result}')
-"
-```
+> **📋 Prerequisites**: For basic environment setup (missing files, Python installation), see **[Installation Troubleshooting](../getting-started/installation.md#troubleshooting)**.
 
-### Validation Errors
-```bash
-# Run comprehensive validation
-python -c "
+### Configuration System Health Check
+
+```python
+# Comprehensive configuration diagnostic
 from src.config import load_config, validate_config
+from src.config.tools import ConfigurationValidator
+import logging
+
+def diagnose_configuration():
+    print("=== Configuration System Diagnostic ===")
+    
+    # 1. Configuration loading
+    try:
+        config = load_config()
+        print("✅ Configuration loads successfully")
+    except Exception as e:
+        print(f"❌ Configuration loading failed: {e}")
+        return False
+    
+    # 2. Schema validation
+    try:
+        validator = ConfigurationValidator(config)
+        errors, warnings = validator.validate_full()
+        if errors:
+            print(f"❌ Schema validation errors: {len(errors)}")
+            for error in errors[:3]:  # Show first 3 errors
+                print(f"   - {error}")
+        else:
+            print("✅ Schema validation passed")
+    except Exception as e:
+        print(f"❌ Schema validation failed: {e}")
+    
+    # 3. Environment variable resolution
+    try:
+        from src.config.utils import check_environment_variables
+        missing_vars = check_environment_variables(config)
+        if missing_vars:
+            print(f"⚠️ Missing environment variables: {missing_vars}")
+        else:
+            print("✅ All environment variables resolved")
+    except Exception as e:
+        print(f"❌ Environment variable check failed: {e}")
+    
+    print("=== End Diagnostic ===")
+
+# Run diagnostic
+diagnose_configuration()
+```
+
+### Configuration Validation Quick Check
+
+```bash
+# Use built-in configuration validation tool
+python -m src.config.tools validate --verbose
+
+# Check specific configuration sections
+python -c "
+from src.config import load_config
 config = load_config()
-errors, warnings = validate_config(config)
-print(f'Errors: {errors}')
-print(f'Warnings: {warnings}')
+
+# Validate critical sections
+sections = ['database', 'llm', 'github', 'notification']
+for section in sections:
+    if hasattr(config, section):
+        print(f'✅ {section}: configured')
+    else:
+        print(f'❌ {section}: missing')
 "
 ```
 
-## Configuration File Issues
+## Schema Validation Issues
 
-### ❌ Configuration File Not Found
+### Issue: Pydantic Validation Errors
 
-**Symptoms**
+**Symptoms:**
 ```
-ConfigurationFileError: Configuration file not found at: config.yaml
+pydantic.ValidationError: 2 validation errors for Config
+database.pool_size
+  ensure this value is greater than 0 (type=value_error.number.not_gt; limit_value=0)
+llm.anthropic.api_key
+  field required (type=value_error.missing)
 ```
 
-**Common Causes**
-- Configuration file doesn't exist
-- Wrong file name or location
-- Incorrect working directory
-- File permissions prevent reading
+**Diagnosis:**
+```python
+# Detailed validation error analysis
+from src.config import load_config
+from pydantic import ValidationError
 
-**Solutions**
+try:
+    config = load_config()
+except ValidationError as e:
+    print("Validation errors found:")
+    for error in e.errors():
+        field_path = ' → '.join(str(loc) for loc in error['loc'])
+        print(f"  {field_path}: {error['msg']}")
+        print(f"    Input value: {error['input']}")
+        print(f"    Error type: {error['type']}")
+        print()
+```
 
-1. **Check file existence and location**
-   ```bash
-   # Look for configuration files
-   find . -name "*.yaml" -o -name "*.yml"
+**Solutions:**
+
+1. **Fix data types:**
+   ```yaml
+   # ❌ Wrong data type
+   database:
+     pool_size: "20"  # String instead of int
    
-   # Check current directory
-   pwd
-   ls -la config*
+   # ✅ Correct data type
+   database:
+     pool_size: 20    # Integer
    ```
 
-2. **Copy from example**
-   ```bash
-   cp config.example.yaml config.yaml
+2. **Add missing required fields:**
+   ```yaml
+   # ❌ Missing required field
+   llm:
+     anthropic: {}    # Missing api_key
+   
+   # ✅ Include required fields
+   llm:
+     anthropic:
+       api_key: "${ANTHROPIC_API_KEY}"
    ```
 
-3. **Set explicit path**
-   ```bash
-   export AGENTIC_CONFIG_PATH="/full/path/to/config.yaml"
+3. **Validate value ranges:**
+   ```yaml
+   # ❌ Invalid range
+   database:
+     pool_size: -1    # Negative value
+   
+   # ✅ Valid range
+   database:
+     pool_size: 20    # Positive integer
    ```
 
-4. **Check permissions**
-   ```bash
-   ls -la config.yaml
-   chmod 644 config.yaml  # If needed
+### Issue: Custom Validation Rule Failures
+
+**Symptoms:**
+```
+ValueError: GitHub repositories must have unique URLs
+ValueError: Default LLM provider 'openai' not found in configuration
+```
+
+**Diagnosis:**
+```python
+# Check custom validation rules
+from src.config import load_config
+from src.config.validators import ConfigValidator
+
+try:
+    config = load_config()
+    validator = ConfigValidator(config)
+    
+    # Run custom validations
+    business_rules_errors = validator.validate_business_rules()
+    cross_field_errors = validator.validate_cross_field_references()
+    
+    print("Business rule errors:", business_rules_errors)
+    print("Cross-field errors:", cross_field_errors)
+    
+except Exception as e:
+    print(f"Custom validation error: {e}")
+```
+
+**Solutions:**
+
+1. **Fix cross-field references:**
+   ```yaml
+   # ❌ Reference to non-existent provider
+   default_llm_provider: openai
+   llm:
+     anthropic: {...}  # openai not configured
+   
+   # ✅ Reference existing provider
+   default_llm_provider: anthropic
+   llm:
+     anthropic: {...}
+   ```
+
+2. **Ensure unique constraints:**
+   ```yaml
+   # ❌ Duplicate repository URLs
+   repositories:
+     - url: "https://github.com/org/repo"
+     - url: "https://github.com/org/repo"  # Duplicate
+   
+   # ✅ Unique repository URLs
+   repositories:
+     - url: "https://github.com/org/repo1"
+     - url: "https://github.com/org/repo2"
    ```
 
 ### ❌ YAML Parsing Errors

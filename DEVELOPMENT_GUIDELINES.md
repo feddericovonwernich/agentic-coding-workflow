@@ -1,6 +1,10 @@
-# Development Best Practices
+# Development Guidelines (Authoritative)
 
-This document provides comprehensive development guidelines for the Agentic Coding Workflow project. These practices ensure code quality, maintainability, and consistency across all contributions, including those from AI development and testing subagents.
+> **📋 Document Purpose**: This is the **authoritative source** for all development standards, coding practices, and technical patterns in the Agentic Coding Workflow project. For practical daily development guidance, see [docs/developer/best-practices.md](docs/developer/best-practices.md).
+
+## Purpose
+
+This document provides **comprehensive development guidelines** that ensure code quality, maintainability, and consistency across all contributions. It serves as the definitive reference for all development standards and detailed technical patterns.
 
 ## Table of Contents
 

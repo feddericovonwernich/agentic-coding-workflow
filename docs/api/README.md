@@ -2,6 +2,8 @@
 
 Welcome to the comprehensive API documentation for the Agentic Coding Workflow project. This documentation covers all public interfaces and APIs that enable integration, extension, and development with the system.
 
+> **📚 Navigation**: This is the **API reference hub**. For user configuration scenarios, see [User Configuration Guide](../user-guide/configuration.md). For developer setup, see [Developer Guide](../developer/README.md). For troubleshooting API integration issues, see [Configuration Troubleshooting](../config/troubleshooting.md).
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
@@ -248,6 +250,9 @@ We maintain backward compatibility within major versions:
 - **[Complete API Reference](README.md)** - This comprehensive guide
 - **[Code Examples](examples/)** - Working code for all APIs
 - **[Integration Patterns](../developer/testing-guide.md)** - Testing and integration guidance
+- **[🛠️ Troubleshooting Hub](../troubleshooting-hub.md)** - Find the right troubleshooting guide for your issue
+- **[Configuration Issues](../config/troubleshooting.md)** - Technical configuration and API integration problems
+- **[Development Issues](../developer/debugging.md)** - Local development and debugging problems
 
 ### Community Support
 - **[GitHub Issues](https://github.com/feddericovonwernich/agentic-coding-workflow/issues)** - Bug reports and feature requests
