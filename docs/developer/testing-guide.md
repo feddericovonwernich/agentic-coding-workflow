@@ -49,24 +49,18 @@ pytest --cov=src --cov-report=term-missing
 pytest -n auto
 ```
 
-**New to testing?** Start with our [Testing Best Practices Guide](../testing/best-practices.md).
+**New to testing?** Start with our [**TESTING_GUIDELINES.md**](../../TESTING_GUIDELINES.md) - the authoritative testing standards and comprehensive patterns.
 
 ## Testing Philosophy
 
-Our testing approach is built on three core principles:
+Our testing approach follows the comprehensive standards outlined in [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md).
 
-### 1. **Human Readability First**
-Tests should be self-documenting and easy to understand. Every test includes clear documentation explaining why it exists, what it tests, and how it works.
+**Key Principles:**
+- **Human Readability First**: Self-documenting tests with clear Why/What/How documentation
+- **Strong Interface Testing**: Focus on public interfaces and behavior, not implementation details  
+- **Comprehensive Coverage**: High coverage across critical paths including database, APIs, and error handling
 
-### 2. **Strong Interface Testing**
-We focus on testing public interfaces and behavior rather than internal implementation details. This makes tests more maintainable and less brittle.
-
-### 3. **Comprehensive Coverage**
-We maintain high test coverage across all critical paths, with particular attention to:
-- Database operations and data integrity
-- External API integrations (GitHub, LLM providers)
-- Configuration management and validation
-- Error handling and edge cases
+**For complete testing philosophy and detailed guidelines, see [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md).**
 
 ## Test Structure Overview
 
@@ -91,44 +85,15 @@ tests/
 
 ## Testing Requirements
 
-### Mandatory Documentation
+**All testing requirements and standards are defined in [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md).**
 
-Every test must include a comment block explaining:
+**Key Requirements Summary:**
+- **Mandatory Why/What/How documentation** for every test
+- **Clear, descriptive test naming** conventions
+- **Type hints and code quality** standards
+- **Test isolation and independence** requirements
 
-```python
-def test_example_functionality():
-    """
-    Why: Explain the business reason this test exists
-    
-    What: Describe what specific functionality is being tested
-    
-    How: Outline the approach used to test the functionality
-    """
-    # Test implementation
-```
-
-**Example:**
-```python
-def test_analyzer_categorizes_lint_failures():
-    """
-    Why: Ensure the analyzer correctly identifies lint failures to route them
-         for automatic fixing rather than human escalation
-    
-    What: Tests that CheckAnalyzer.analyze() returns category='lint' for
-          eslint failure logs
-    
-    How: Provides sample eslint failure logs and verifies the returned
-         analysis has the correct category and confidence score
-    """
-    # Test implementation
-```
-
-### Code Quality Standards
-
-- **Type hints**: All test functions and fixtures must have type hints
-- **Clear naming**: Test names should describe the expected behavior
-- **Isolated tests**: Each test should be independent and idempotent
-- **Proper fixtures**: Use pytest fixtures for setup and teardown
+**Complete documentation requirements and examples: [TESTING_GUIDELINES.md - Documentation Requirements](../../TESTING_GUIDELINES.md#documentation-requirements)**
 
 ## Test Types
 
@@ -197,18 +162,18 @@ async def test_database_connection_lifecycle():
 
 ## Best Practices
 
+### 📚 **Authoritative Testing Standards**
+**Complete best practices and standards: [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md)**
+
 ### 🚀 **Quick Reference**
 - Use descriptive test names: `test_should_reject_invalid_url_format()`
-- One assertion per test (when possible)
-- Use fixtures for common setup/teardown
-- Mock external dependencies in unit tests
-- Use real services in integration tests
+- Mandatory Why/What/How documentation for every test
+- Mock external dependencies in unit tests, use real services for integration
+- Follow test organization and naming conventions from TESTING_GUIDELINES.md
 
-### 📚 **Comprehensive Guide**
-For detailed best practices including naming conventions, fixture usage, and testing patterns, see our [Testing Best Practices Guide](../testing/best-practices.md).
-
-### 🔧 **Database Testing**
-Database testing requires special considerations for transactions, isolation, and performance. See our [Database Testing Guide](../testing/database-testing.md).
+### 🔧 **Specialized Testing Guides**
+- **[Database Testing](../testing/database-testing.md)** - Database-specific patterns and considerations
+- **[Testing Best Practices](../testing/best-practices.md)** - Additional patterns complementing TESTING_GUIDELINES.md
 
 ## Advanced Topics
 

@@ -77,9 +77,9 @@ pytest -m integration
 pytest --cov=src --cov-report=html
 ```
 
-**Complete Testing Guide:** [Developer Testing Guide](docs/developer/testing-guide.md) - Comprehensive testing practices, tools, and patterns.
+**Complete Testing Standards:** [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) - Authoritative testing guidelines and comprehensive patterns.
 
-**Quick Reference:** [Testing Best Practices](docs/testing/best-practices.md) - Essential testing standards and requirements.
+**Testing Navigation:** [Developer Testing Guide](docs/developer/testing-guide.md) - Overview of testing tools, structure, and specialized guides.
 
 ## Development
 
@@ -158,7 +158,8 @@ agentic-coding-workflow/
 **Development Guides**
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
 - **[Development Guidelines](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development setup and coding standards
-- **[Testing Guide](docs/developer/testing-guide.md)** - Complete testing practices, tools, and patterns
+- **[Testing Guidelines](TESTING_GUIDELINES.md)** - Authoritative testing standards and comprehensive patterns
+- **[Testing Guide](docs/developer/testing-guide.md)** - Testing tools, structure, and specialized guides
 - **[Documentation Guidelines](DOCUMENTATION_GUIDELINES.md)** - Documentation standards for maintainers
 
 **Technical Reference**

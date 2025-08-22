@@ -5,7 +5,7 @@ This guide provides comprehensive best practices for testing all components of t
 ## Table of Contents
 
 - [General Testing Principles](#general-testing-principles)
-- [Core Testing Requirements](#core-testing-requirements)
+- [Core Testing Requirements](#core-testing-requirements) (references TESTING_GUIDELINES.md)
 - [Unit Testing Guidelines](#unit-testing-guidelines)
 - [Integration Testing Guidelines](#integration-testing-guidelines)
 - [Database Testing Strategy](#database-testing-strategy)
@@ -35,43 +35,9 @@ def test_repository_handles_constraint_violation():
 
 ## Core Testing Requirements
 
-### Mandatory Test Documentation
+**All core testing requirements and standards are defined in [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md).**
 
-**Every test must include a comment block explaining:**
-- **Why**: The reason this test exists (business/technical justification)
-- **What**: What functionality it tests (specific behavior being verified)
-- **How**: The approach used to test it (methodology and techniques)
-
-This requirement is **non-negotiable** and applies to all tests in the codebase.
-
-**Required Format:**
-```python
-def test_function_name():
-    """
-    Why: [Explain the business/technical reason for this test]
-    
-    What: [Describe what specific functionality is being tested]
-    
-    How: [Outline the approach and methodology used]
-    """
-    # Test implementation
-```
-
-**Example:**
-```python
-def test_analyzer_categorizes_lint_failures():
-    """
-    Why: Ensure the analyzer correctly identifies lint failures to route them
-         for automatic fixing rather than human escalation
-    
-    What: Tests that CheckAnalyzer.analyze() returns category='lint' for
-          eslint failure logs
-    
-    How: Provides sample eslint failure logs and verifies the returned
-         analysis has the correct category and confidence score
-    """
-    # Test implementation
-```
+This guide provides additional specialized patterns that complement the authoritative testing standards.
 
 ### 2. Test Naming Convention
 
