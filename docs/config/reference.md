@@ -601,6 +601,118 @@ ValidationError: log_level must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL
 ValidationError: default_llm_provider 'openai' not found in llm configuration
 ```
 
+## API Reference
+
+### Configuration Utilities
+
+The configuration system provides various utility functions for advanced usage:
+
+#### Generate Example Configuration
+
+```python
+from src.config import generate_example_config
+
+# Generate example config file
+example_yaml = generate_example_config(
+    output_path="config.example.yaml",
+    include_comments=True
+)
+```
+
+#### Configuration Summary
+
+```python
+from src.config import get_config_summary, mask_sensitive_values
+
+config = load_config()
+
+# Get configuration summary for logging
+summary = get_config_summary(config)
+
+# Mask sensitive values for safe logging
+safe_config = mask_sensitive_values(config.dict())
+```
+
+#### Environment Variable Validation
+
+```python
+from src.config import validate_environment_variables
+
+config = load_config()
+missing_vars = validate_environment_variables(config)
+
+if missing_vars:
+    print(f"Missing environment variables: {missing_vars}")
+```
+
+#### Advanced Validation
+
+```python
+from src.config import validate_config, ConfigurationValidator
+
+# Basic validation
+errors, warnings = validate_config(config)
+
+# Advanced validation with connectivity checks
+validator = ConfigurationValidator(config)
+errors, warnings = validator.validate_all(
+    check_connectivity=True,
+    check_dependencies=True,
+    check_permissions=True
+)
+```
+
+#### JSON Schema Generation
+
+Generate JSON Schema for configuration validation in external tools:
+
+```python
+from src.config import generate_json_schema, Config
+
+# Generate schema for the entire configuration
+schema = generate_json_schema(Config, "config-schema.json")
+```
+
+### Error Handling
+
+The configuration system provides specific exceptions for different error types:
+
+- `ConfigurationError`: Base exception for all configuration errors
+- `ConfigurationFileError`: File reading/parsing errors
+- `ConfigurationValidationError`: Validation failures
+- `ConfigurationMissingError`: Missing required configuration
+- `EnvironmentVariableError`: Environment variable substitution failures
+
+### Environment Variable Substitution
+
+The system supports two formats for environment variable substitution:
+
+- `${VAR_NAME}` - Required environment variable (throws error if missing)
+- `${VAR_NAME:default_value}` - Optional with default value
+
+#### Examples
+
+```yaml
+# Basic substitution
+database:
+  url: "${DATABASE_URL}"  # Required environment variable
+  pool_size: "${DB_POOL_SIZE:10}"  # Optional with default value
+
+# Complex substitution
+llm:
+  anthropic:
+    provider: anthropic
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "${ANTHROPIC_MODEL:claude-3-sonnet-20240229}"
+```
+
+### Security Considerations
+
+- Configuration files may contain sensitive information (API keys, tokens)
+- Use environment variables for sensitive values
+- Ensure configuration files have appropriate permissions (600 or 640)
+- The system automatically masks sensitive values in logs and error messages
+
 ## Configuration Examples
 
 See the [examples directory](../../config/examples/) for complete configuration examples for different environments and use cases.
