@@ -1,6 +1,10 @@
-# Comprehensive Testing Guide
+# Developer Testing Guide
 
-Welcome to the complete testing guide for the Agentic Coding Workflow project. This guide serves as your single entry point for understanding our testing philosophy, practices, and tools.
+> **📚 Authoritative Reference**: For comprehensive testing standards, detailed patterns, and complete testing methodology, see **[TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md)** - the authoritative source for all testing standards (856 lines).
+
+## Purpose
+
+This guide serves as the **developer entry point** to our testing ecosystem. It provides practical guidance for daily testing tasks and clear navigation to detailed testing resources. For comprehensive testing methodology and authoritative standards, always refer to the main testing guidelines.
 
 ## Table of Contents
 
@@ -49,7 +53,7 @@ pytest --cov=src --cov-report=term-missing
 pytest -n auto
 ```
 
-**New to testing?** Start with our [**TESTING_GUIDELINES.md**](../../TESTING_GUIDELINES.md) - the authoritative testing standards and comprehensive patterns.
+**New to testing?** Start with our [**TESTING_GUIDELINES.md**](../../TESTING_GUIDELINES.md) - the authoritative testing standards and comprehensive patterns (856 lines).
 
 ## Testing Philosophy
 
@@ -212,23 +216,39 @@ Test GitHub integrations without requiring real tokens or hitting rate limits:
 2. **[Testing Best Practices](../testing/best-practices.md)** - Avoid common pitfalls
 3. **[GitHub Issues](https://github.com/feddericovonwernich/agentic-coding-workflow/issues)** - Report testing-related bugs
 
-## Documentation Navigation
+## Testing Documentation Navigation
 
-### Quick Access
-- **[Testing Best Practices](../testing/best-practices.md)** - Start here for testing standards
+### 📚 **Authoritative Standards**
+- **[TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md)** - Complete testing methodology and standards (856 lines)
+
+### 🚀 **Quick Access for Daily Testing**
+- **[Testing Best Practices](../testing/best-practices.md)** - Practical testing patterns
 - **[Database Testing](../testing/database-testing.md)** - Database-specific guidance
 - **[Mock GitHub Server](../reference/testing/mock-github-server.md)** - GitHub API testing
 
-### Complete Reference
+### 📖 **Detailed Reference Documentation**
 - **[Testing Methodology](../testing/methodology.md)** - Our testing philosophy and approach
 - **[Coverage Analysis](../testing/coverage.md)** - Understanding test coverage
 - **[Quality Metrics](../testing/quality-metrics.md)** - Measuring test effectiveness
 - **[Testing Troubleshooting](../testing/troubleshooting.md)** - Common issues and solutions
 
+### 🎯 **Testing Journey Map**
+
+**New to the project?**
+1. **Start**: Read [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md) for comprehensive understanding
+2. **Practice**: Follow this guide for daily testing tasks
+3. **Specialize**: Use detailed reference docs for specific scenarios
+
+**Daily Development Testing:**
+- Use this guide for quick reference and common tasks
+- Refer to [Testing Best Practices](../testing/best-practices.md) for patterns
+- Consult [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md) for standards
+
 ---
 
 **Ready to start testing?** 
-- 🚀 **New to the project**: Start with [Testing Best Practices](../testing/best-practices.md)
-- 🔧 **Working with databases**: See [Database Testing Guide](../testing/database-testing.md)  
-- 🐙 **Testing GitHub integration**: Check out the [Mock GitHub Server](../reference/testing/mock-github-server.md)
-- 📊 **Improving coverage**: Read [Coverage Analysis Guide](../testing/coverage.md)
+- 📚 **Understanding our approach**: Read [TESTING_GUIDELINES.md](../../TESTING_GUIDELINES.md)
+- 🚀 **Daily testing tasks**: Use this guide and [Testing Best Practices](../testing/best-practices.md)
+- 🔧 **Database testing**: See [Database Testing Guide](../testing/database-testing.md)  
+- 🐙 **GitHub integration**: Check out the [Mock GitHub Server](../reference/testing/mock-github-server.md)
+- 📊 **Coverage analysis**: Read [Coverage Analysis Guide](../testing/coverage.md)

@@ -1,6 +1,10 @@
-# Testing Best Practices
+# Testing Guidelines (Authoritative)
 
-This document provides comprehensive testing guidelines for the Agentic Coding Workflow project. These practices ensure reliable, maintainable tests that provide meaningful coverage and feedback for both human developers and AI testing subagents.
+> **📋 Document Purpose**: This is the **authoritative source** for all testing standards, methodologies, and comprehensive patterns in the Agentic Coding Workflow project. For daily testing workflows and practical guidance, see [docs/developer/testing-guide.md](docs/developer/testing-guide.md).
+
+## Purpose
+
+This document provides **comprehensive testing guidelines** that ensure reliable, maintainable tests with meaningful coverage. It serves as the definitive reference for all testing standards, patterns, and detailed methodologies.
 
 ## Table of Contents
 

@@ -24,63 +24,49 @@ GitHub → Monitor → Queue → Analyzer → Router → Fix/Review/Notify → G
 
 ## Development Guidelines
 
-### Code Quality Requirements
+**For comprehensive development guidance, see [Developer Documentation](docs/developer/README.md)**
 
-1. **Human Readability First**
-   - Clear, descriptive variable and function names
-   - Comprehensive docstrings for all public functions and classes
-   - Type hints for all function parameters and returns
-   - Meaningful comments explaining complex logic
+### Quick Reference
 
-2. **Strong Interface Design**
-   - Every module must have a clearly defined API
-   - Use abstract base classes for extensibility
-   - Document all public interfaces with docstrings
-   - Keep implementation details private
+**Code Quality**: Follow [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) (authoritative) and [Development Best Practices](docs/developer/best-practices.md) (practical guide)
+- Human readability first
+- Strong interface design using abstract base classes
+- Comprehensive type hints and documentation
+- Single responsibility principle
 
-3. **Module Structure**
+**Testing**: Follow [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) (authoritative) and [Testing Guide](docs/developer/testing-guide.md) (daily workflows)
+- Every test must include Why/What/How documentation
+- Use appropriate test types (unit vs integration)
+- Follow testing best practices and patterns
+
+**Code Review**: Follow [Code Review Guidelines](docs/developer/code-review.md)
+- Constructive, specific feedback
+- Focus on correctness, security, and maintainability
+- Use provided checklists and templates
+
+### Essential Patterns
+
+1. **Interface Design Example**
    ```python
-   # Example module interface
    class NotificationProvider(ABC):
-       """Abstract base class for notification providers.
-       
-       All notification providers must implement this interface
-       to ensure compatibility with the notification service.
-       """
+       """Abstract base class for notification providers."""
        
        @abstractmethod
        def send(self, message: Message, priority: Priority) -> bool:
-           """Send a notification message.
-           
-           Args:
-               message: The notification message to send
-               priority: Message priority level
-               
-           Returns:
-               True if sent successfully, False otherwise
-           """
+           """Send a notification message."""
            pass
    ```
 
-### Testing Requirements
-
-All testing follows our comprehensive testing standards. **See [Testing Guide](docs/developer/testing-guide.md)** for complete testing documentation.
-
-**Key Requirements:**
-- Every test must include Why/What/How documentation
-- Use appropriate test types (unit vs integration)
-- Follow our testing best practices and patterns
-
-**Quick Reference:**
-```python
-def test_function_name():
-    """
-    Why: [Business/technical reason for this test]
-    What: [Specific functionality being tested]  
-    How: [Methodology and approach used]
-    """
-    # Test implementation
-```
+2. **Test Documentation Standard**
+   ```python
+   def test_function_name():
+       """
+       Why: [Business/technical reason for this test]
+       What: [Specific functionality being tested]  
+       How: [Methodology and approach used]
+       """
+       # Test implementation
+   ```
 
 ## Development Commands
 

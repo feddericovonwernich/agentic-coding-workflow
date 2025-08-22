@@ -1,17 +1,20 @@
-# Configuration Quick Start
+# Configuration Technical Quick Start
 
-This guide covers configuration-specific setup for developers who need to understand the configuration system internals.
+> **📚 Navigation**: This guide covers **technical configuration setup** for developers who need to understand the configuration system internals. For complete environment setup, see **[Installation Guide](../getting-started/installation.md)**. For user scenarios and templates, see **[User Configuration Guide](../user-guide/configuration.md)**.
 
-**For users**: See the [User Quick Start Guide](../getting-started/README.md) for complete setup instructions.
+## Purpose
+
+This guide focuses on the **technical aspects** of the configuration system - file management, validation, programmatic usage, and advanced features. It's designed for developers who need to understand how the configuration system works internally.
 
 ## Prerequisites
 
-- Completed [basic installation](../getting-started/installation.md)
+- Completed [basic installation and environment setup](../getting-started/installation.md)
 - Understanding of YAML configuration format
+- Python development experience
 
-## Step 1: Copy Example Configuration (2 minutes)
+## Configuration File Management
 
-Start by copying the example configuration file:
+### Step 1: Configuration File Setup
 
 ```bash
 # Copy the example configuration
@@ -20,11 +23,9 @@ cp config.example.yaml config.yaml
 
 This creates your local configuration file that won't be committed to version control.
 
-## Step 2: Environment Variables
+### Step 2: Development-Specific Configuration
 
-**For complete environment setup**: See the [Installation Guide](../getting-started/installation.md#environment-setup).
-
-**Configuration-specific variables for development:**
+**Configuration-specific variables for development and debugging:**
 
 ```bash
 # Enable configuration debugging
@@ -37,12 +38,16 @@ export CONFIG_VALIDATE_ON_LOAD=true
 export CONFIG_FILE_PATH=./config-dev.yaml
 ```
 
-## Step 3: Basic Configuration Setup (3 minutes)
+> **Note**: For complete environment variable setup (API keys, database URLs, etc.), see the **[Installation Guide](../getting-started/installation.md#environment-setup)**.
 
-Edit your `config.yaml` file to customize for your environment:
+## Technical Configuration Structure
+
+### Step 3: Minimal Technical Configuration
+
+Create a minimal configuration for technical development:
 
 ```yaml
-# Minimal development configuration
+# Minimal technical configuration for developers
 system:
   environment: development
   log_level: DEBUG
@@ -56,26 +61,27 @@ queue:
   provider: redis
   url: "${REDIS_URL:redis://localhost:6379/0}"
 
-# Configure your preferred LLM provider
 llm:
-  anthropic:  # or openai
+  anthropic:
     provider: anthropic
     api_key: "${ANTHROPIC_API_KEY}"
     model: claude-3-sonnet-20240229
-    max_tokens: 4000
 
-default_llm_provider: anthropic  # or openai
+default_llm_provider: anthropic
 
-# Add your repositories
 repositories:
-  - url: https://github.com/your-username/your-repo
+  - url: https://github.com/your-username/test-repo
     auth_token: "${GITHUB_TOKEN}"
     polling_interval: 300
 ```
 
-## Step 4: Validate Configuration (2 minutes)
+> **For comprehensive configuration examples and user scenarios**, see the **[User Configuration Guide](../user-guide/configuration.md)**.
 
-Test your configuration to ensure everything is set up correctly:
+## Configuration Validation and Testing
+
+### Step 4: Configuration Validation
+
+Use the built-in validation tools to ensure your configuration is correct:
 
 ```python
 from src.config import load_config, validate_config
@@ -99,25 +105,25 @@ except Exception as e:
     print(f"❌ Configuration error: {e}")
 ```
 
-## Step 5: Test Integration (3 minutes)
+### Step 5: Configuration Testing
 
-Verify that your configuration works with the actual services:
+Verify that your configuration integrates properly with system components:
 
 ```python
 from src.config import load_config
 
 config = load_config()
 
-# Test database connection
-print(f"Database URL: {config.database.url}")
+# Test configuration loading
+print(f"Environment: {config.system.environment}")
+print(f"Debug mode: {config.system.debug_mode}")
 
-# Test LLM provider
+# Test provider configuration
 llm_config = config.llm[config.default_llm_provider]
-print(f"Using LLM provider: {llm_config.provider}")
+print(f"LLM Provider: {llm_config.provider}")
 
 # Test repository configuration
-for repo in config.repositories:
-    print(f"Monitoring repository: {repo.url}")
+print(f"Monitoring {len(config.repositories)} repositories")
 ```
 
 ## Programmatic Usage
@@ -176,105 +182,113 @@ updated_config = reload_config()
 
 Note: Hot reload should be used carefully in production environments as it may cause inconsistent state if workers are processing tasks during reload.
 
-## Common Quick Setup Scenarios
+## Advanced Technical Configuration
 
-### Local Development (SQLite + In-Memory Queue)
+### Configuration Loading Behavior
+
+Understanding how the configuration system searches for and loads files:
+
+```python
+from src.config import load_config
+
+# Load with explicit validation
+config = load_config(
+    config_file="config.yaml",
+    validate_environment=True,
+    strict_mode=True  # Fail on warnings
+)
+
+# Load with custom search paths
+config = load_config(
+    search_paths=["./configs/", "/etc/agentic/"],
+    fallback_to_minimal=False
+)
+```
+
+### Environment-Specific Technical Settings
+
+Technical configuration patterns for different environments:
 
 ```yaml
+# Development - optimized for debugging
 system:
   environment: development
   debug_mode: true
+  log_level: DEBUG
+  hot_reload: true
 
-database:
-  url: "sqlite:///./dev.db"
-
-queue:
-  provider: redis
-  url: "redis://localhost:6379/0"
-```
-
-### Docker Development
-
-```yaml
+# Testing - optimized for CI/CD
 system:
-  environment: development
+  environment: testing
+  debug_mode: false
+  log_level: WARNING
+  timeout_multiplier: 2.0
 
-database:
-  url: "postgresql://user:pass@db:5432/agentic"
-
-queue:
-  provider: redis
-  url: "redis://redis:6379/0"
-```
-
-### Cloud Development
-
-```yaml
+# Production - optimized for performance
 system:
-  environment: staging
-
-database:
-  url: "${DATABASE_URL}"  # From cloud provider
-
-queue:
-  provider: sqs
-  url: "${SQS_QUEUE_URL}"
+  environment: production
+  debug_mode: false
+  log_level: INFO
+  worker_pool_size: 16
 ```
 
-## Next Steps
+## Advanced Configuration Topics
 
-Now that you have basic configuration working:
+### Next Steps for Technical Configuration
 
-1. **Explore Examples**: Check out [environment examples](../../config/examples/) for your deployment scenario
-2. **Learn Security**: Review [security best practices](security.md) before production
-3. **Understand Features**: Read the [full reference](reference.md) for advanced features
-4. **Troubleshoot Issues**: Bookmark the [troubleshooting guide](troubleshooting.md)
+Now that you understand the technical configuration system:
 
-## Troubleshooting Quick Setup
+1. **Advanced Features**: Read the [full technical reference](reference.md) for all configuration options
+2. **Security Implementation**: Review [security best practices](security.md) for production systems
+3. **Configuration Tools**: Explore [configuration tools and utilities](tools.md) for validation and management
+4. **API Integration**: See [Configuration API documentation](../api/configuration-api.md) for programmatic usage
 
-### Configuration File Not Found
+### Technical Troubleshooting
+
+#### Configuration System Issues
+
+**Configuration file search problems**:
 ```bash
-# Ensure config.yaml exists in the right location
-ls -la config.yaml
-
-# Or specify explicit path
-export AGENTIC_CONFIG_PATH="/path/to/your/config.yaml"
-```
-
-### Environment Variables Not Set
-```bash
-# Check if variables are set
-env | grep -E "(DATABASE_URL|GITHUB_TOKEN|ANTHROPIC_API_KEY)"
-
-# Source your .env file if using one
-source .env
-```
-
-### Database Connection Issues
-```bash
-# Test database connectivity
+# Debug configuration file discovery
 python -c "
-from src.config import load_config
-from src.database import test_connection
+from src.config.loader import ConfigLoader
+loader = ConfigLoader(debug=True)
+loader.discover_config_file()
+"
+```
+
+**Configuration validation failures**:
+```bash
+# Run comprehensive configuration validation
+python -c "
+from src.config import load_config, validate_config
 config = load_config()
-test_connection(config.database.url)
+errors, warnings = validate_config(config, verbose=True)
+print(f'Errors: {errors}')
+print(f'Warnings: {warnings}')
 "
 ```
 
-### LLM Provider Issues
+**Environment variable substitution issues**:
 ```bash
-# Verify API key format
+# Test environment variable resolution
 python -c "
-import os
-key = os.getenv('ANTHROPIC_API_KEY')
-print(f'Key format: {key[:7]}...{key[-4:] if key else None}')
-print(f'Key length: {len(key) if key else 0}')
+from src.config.models import BaseConfigModel
+test_config = {'url': '\${TEST_VAR:default_value}'}
+result = BaseConfigModel.substitute_env_vars(test_config)
+print(f'Result: {result}')
 "
 ```
 
-## Getting Help
+> **For environment setup and service connectivity issues**, see the **[Installation Troubleshooting Guide](../getting-started/installation.md#troubleshooting)** and **[User Troubleshooting Guide](../user-guide/troubleshooting.md)**.
 
-- **Configuration validation errors**: See [troubleshooting guide](troubleshooting.md)
-- **Environment-specific setup**: Check [examples directory](../../config/examples/)
-- **Advanced features**: Read [configuration reference](reference.md)
-- **Security questions**: Review [security guide](security.md)
+## Technical Configuration Resources
+
+### Getting Help with Configuration
+
+- **Technical configuration issues**: See [configuration troubleshooting guide](troubleshooting.md)
+- **User scenario setup**: Check [user configuration guide](../user-guide/configuration.md)
+- **Environment setup problems**: See [installation troubleshooting](../getting-started/installation.md#troubleshooting)
+- **Complete technical reference**: Read [configuration reference](reference.md)
+- **Configuration security**: Review [security best practices](security.md)
+- **Programmatic usage**: See [Configuration API](../api/configuration-api.md)

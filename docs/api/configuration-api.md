@@ -1,39 +1,32 @@
-# Configuration Management API
+# Configuration Management API Reference
 
-The Configuration Management API provides a powerful, type-safe configuration system with validation, hot reload, and comprehensive utilities for managing application configuration.
+> **📚 Navigation**: This is the **complete API reference** for programmatic configuration management. For setup guidance, see **[Configuration Technical Guide](../config/getting-started.md)**. For user configuration templates, see **[User Configuration Guide](../user-guide/configuration.md)**.
+
+## Purpose
+
+This API reference provides comprehensive documentation for developers who need to programmatically interact with the configuration system. All code examples assume you have already completed environment setup as described in the [Installation Guide](../getting-started/installation.md).
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
-- [Configuration Loading](#configuration-loading)
+- [Configuration Loading API](#configuration-loading-api)
 - [Configuration Models](#configuration-models)
 - [Environment Variable Substitution](#environment-variable-substitution)
-- [Validation](#validation)
+- [Validation API](#validation-api)
 - [Configuration Utilities](#configuration-utilities)
-- [Hot Reload](#hot-reload)
+- [Hot Reload API](#hot-reload-api)
 - [Caching and Performance](#caching-and-performance)
 - [Testing Support](#testing-support)
-- [Best Practices](#best-practices)
 
-## Quick Start
+## Configuration Loading API
 
-### Basic Configuration Loading
+### Core Loading Functions
 
 ```python
 from src.config.loader import load_config
 
-# Load configuration from default locations
+# Basic configuration loading
 config = load_config()
 
-# Access configuration values
-print(f"Database URL: {config.database.url}")
-print(f"GitHub Token: {config.github.token}")
-print(f"LLM Provider: {config.default_llm_provider}")
-```
-
-### Custom Configuration File
-
-```python
 # Load from specific file
 config = load_config("custom-config.yaml")
 
@@ -45,34 +38,25 @@ config = load_config(
 )
 ```
 
-### Minimal Configuration Example
+### Advanced Loading Options
 
-```yaml
-# minimal-config.yaml
-database:
-  url: "${DATABASE_URL:sqlite:///./agentic.db}"
+```python
+# Load with custom search paths
+config = load_config(
+    search_paths=["./configs/", "/etc/agentic/"],
+    fallback_to_minimal=False
+)
 
-github:
-  token: "${GITHUB_TOKEN}"
-
-llm:
-  anthropic:
-    provider: anthropic
-    api_key: "${ANTHROPIC_API_KEY}"
-
-default_llm_provider: anthropic
+# Load with environment override
+config = load_config(
+    environment_override="production",
+    debug_mode=False
+)
 ```
 
 ## Configuration Loading
 
-### Loading Hierarchy
-
-The configuration system follows a hierarchical loading pattern:
-
-1. **Default values** from Pydantic models
-2. **Configuration file** (YAML)
-3. **Environment variables** with substitution
-4. **Runtime overrides** (if applicable)
+### Configuration Loading Hierarchy API
 
 ```python
 from src.config.loader import ConfigurationLoader
@@ -89,41 +73,60 @@ loader = ConfigurationLoader(
 )
 
 # Load configuration
-config = await loader.load_config()
+config = loader.load()
+
+# Get loading metadata
+metadata = loader.get_loading_metadata()
+print(f"Loaded from: {metadata.source_file}")
+print(f"Load time: {metadata.load_time_ms}ms")
 ```
 
-### Auto-Discovery
-
-Configuration files are automatically discovered from multiple locations:
+### File Discovery API
 
 ```python
-# Default search paths (in order)
-search_paths = [
-    "./config.yaml",                    # Current directory
-    "./config/config.yaml",             # Config subdirectory
-    "~/.config/agentic/config.yaml",    # User config directory
-    "/etc/agentic/config.yaml"          # System config directory
-]
+from src.config.discovery import ConfigFileDiscovery
 
-# Override search paths
-config = load_config(search_paths=custom_paths)
+# Create discovery service
+discovery = ConfigFileDiscovery()
+
+# Find configuration files
+files = discovery.discover_config_files(
+    search_paths=["./", "/etc/agentic/"],
+    filename_patterns=["config.yaml", "agentic.yaml"]
+)
+
+# Get the best candidate
+best_config = discovery.select_best_config(files)
 ```
 
-### Loading Options
+### Loading Options API
 
 ```python
-from src.config.loader import load_config
+from src.config.loader import load_config, ConfigLoadOptions
 
-# Basic loading
-config = load_config()
+# Create loading options
+options = ConfigLoadOptions(
+    config_file="production.yaml",
+    validate_environment=True,
+    strict_mode=True,
+    cache_enabled=True,
+    hot_reload=True,
+    search_paths=[
+        "./config.yaml",
+        "./config/config.yaml", 
+        "~/.config/agentic/config.yaml",
+        "/etc/agentic/config.yaml"
+    ]
+)
 
-# Advanced loading with options
+# Load with options
+config = load_config(options=options)
+
+# Or use direct parameters
 config = load_config(
-    config_file="production.yaml",      # Specific file
-    validate_environment=True,          # Validate env vars exist
-    strict_mode=True,                   # Strict validation
-    cache_enabled=True,                 # Enable caching
-    hot_reload=True                     # Enable hot reload
+    config_file="production.yaml",
+    validate_environment=True,
+    strict_mode=True
 )
 ```
 
@@ -745,9 +748,19 @@ def test_feature():
         pass
 ```
 
----
+## API Reference Navigation
 
-**Next Steps:**
-- 📖 **Examples**: Check [Configuration Examples](examples/config-management.py) for complete working code
-- 🗄️ **Database**: See [Database API Documentation](database-api.md) for database configuration
-- 🧪 **Testing**: Review [Testing Guide](../developer/testing-guide.md) for configuration testing patterns
+### Related API Documentation
+- **[Database API](database-api.md)** - Database configuration API reference
+- **[GitHub Client API](github-client.md)** - GitHub integration API
+- **[Worker Interfaces API](worker-interfaces.md)** - Worker system configuration API
+
+### Implementation Guidance
+- **[Configuration Technical Guide](../config/getting-started.md)** - Technical setup and validation
+- **[Configuration Examples](examples/README.md)** - Complete working code examples
+- **[Testing Guide](../developer/testing-guide.md)** - Configuration testing patterns
+
+### User Resources  
+- **[User Configuration Guide](../user-guide/configuration.md)** - Configuration templates and scenarios
+- **[Installation Guide](../getting-started/installation.md)** - Environment and API key setup
+- **[Configuration Security](../config/security.md)** - Security best practices

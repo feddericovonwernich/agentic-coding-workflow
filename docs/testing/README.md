@@ -2,7 +2,7 @@
 
 This directory contains detailed testing reference guides for the Agentic Coding Workflow project.
 
-**Looking for testing guidance?** See the [Complete Testing Guide](../developer/testing-guide.md) for comprehensive testing information.
+> **📚 Navigation**: This is the **testing reference hub**. For testing overview and daily workflows, see [Testing Guide](../developer/testing-guide.md). For authoritative testing standards, see [Testing Guidelines](../../TESTING_GUIDELINES.md). For testing issues, see [Testing Troubleshooting](troubleshooting.md).
 
 ## Quick Start
 
@@ -139,7 +139,16 @@ See related issues:
 
 ## Getting Help
 
-- Check the [Troubleshooting Guide](./troubleshooting.md) for common issues
+**Testing Issues:**
+- **[🛠️ Troubleshooting Hub](../troubleshooting-hub.md)** - **Navigation center** - find the right troubleshooting guide for your issue type
+- **[Testing Troubleshooting](./troubleshooting.md)** - Test execution, database testing, CI/CD problems
+- **[Development Debugging](../developer/debugging.md)** - Local development environment and debugging issues
+
+**Testing Guidance:**
+- **[Testing Best Practices](./best-practices.md)** - Detailed testing guidance and patterns
+- **[Testing Guide](../developer/testing-guide.md)** - Complete testing overview and workflows
+- **[Testing Guidelines](../../TESTING_GUIDELINES.md)** - Authoritative testing standards and methodology
+
+**Additional Resources:**
 - Review existing tests for patterns and examples
-- See [Testing Best Practices](./best-practices.md) for detailed guidance
 - For performance testing needs, see issues #32 and #33

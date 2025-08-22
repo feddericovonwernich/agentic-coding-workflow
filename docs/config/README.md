@@ -1,46 +1,69 @@
-# Configuration System Overview
+# Configuration Documentation Hub
 
-The Agentic Coding Workflow system uses a comprehensive configuration management system that provides type-safe, validated configuration with caching, metrics, and hot reload capabilities.
+> **📚 Navigation Hub**: This is the **central navigation point** for all configuration documentation. Choose the guide that matches your needs and experience level.
 
-## Quick Navigation
+## Configuration Documentation Hierarchy
 
-- **[Getting Started](getting-started.md)** - Set up configuration in < 15 minutes
-- **[Configuration Reference](reference.md)** - Complete field documentation
-- **[API Documentation](../api/configuration-api.md)** - Programmatic configuration management
-- **[Tools & Utilities](tools.md)** - Validation and comparison tools
-- **[Security Guide](security.md)** - Best practices for credential management
-- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-- **[Examples](../config/examples/)** - Environment and use case examples
+### 🚀 **Quick Start** (Choose Your Path)
+- **New User?** → **[Installation Guide](../getting-started/installation.md)** - Complete environment setup with API keys
+- **Setting up team scenarios?** → **[User Configuration Guide](../user-guide/configuration.md)** - Ready-to-use templates 
+- **Developer/Technical setup?** → **[Configuration Technical Guide](getting-started.md)** - System internals and validation
+- **Programmatic access?** → **[Configuration API Reference](../api/configuration-api.md)** - Complete API documentation
 
-## Key Features
+### 📋 **Complete Guide Navigation**
 
-### 🔧 Type-Safe Configuration
-- Pydantic models ensure compile-time type safety
-- Comprehensive validation with clear error messages
-- IDE autocompletion and type checking support
+#### 🔧 **For Users** (Team Setup & Scenarios)
+- **[User Configuration Guide](../user-guide/configuration.md)** - Configuration templates for teams and use cases
+- **[Installation Guide](../getting-started/installation.md)** - Environment variables and API key setup 
+- **[User Troubleshooting](../user-guide/troubleshooting.md)** - Common configuration issues and solutions
 
-### ⚡ High Performance
-- In-memory caching with LRU eviction
-- Critical path warming for fast startup
-- Thread-safe concurrent access
-- Configurable cache behavior
+#### 🛠️ **For Developers** (Technical Implementation)  
+- **[Configuration Technical Guide](getting-started.md)** - Technical setup and system internals
+- **[Configuration Reference](reference.md)** - Complete field documentation and technical details
+- **[Configuration API Reference](../api/configuration-api.md)** - Programmatic configuration management
+- **[Tools & Utilities](tools.md)** - Validation, comparison, and management tools
 
-### 📊 Monitoring & Metrics
-- Configuration access pattern tracking
-- Performance metrics and health monitoring
-- Cache hit rates and statistics
-- Error tracking and alerting
+#### 🔒 **For Security & Operations**
+- **[Security Guide](security.md)** - Security best practices and credential management
+- **[Configuration Troubleshooting](troubleshooting.md)** - Technical configuration issues and debugging
 
-### 🔄 Hot Reload
-- Runtime configuration updates without restart
-- Cache invalidation and warming
-- Safe reload with rollback capability
+## Documentation Types Explained
 
-### 🛡️ Security First
+### 📖 **What Each Guide Provides**
+
+#### **User Guides** (Practical Scenarios)
+- **Focus**: Ready-to-use configuration templates and real-world scenarios
+- **Audience**: Users setting up teams, choosing between small/enterprise configurations
+- **Content**: YAML templates, team workflows, performance tuning examples
+- **When to use**: You want to quickly configure the system for your specific team size or use case
+
+#### **Technical Guides** (System Understanding) 
+- **Focus**: How the configuration system works internally
+- **Audience**: Developers who need to understand system behavior, validation, debugging
+- **Content**: Configuration loading, validation APIs, programmatic usage, troubleshooting
+- **When to use**: You're developing against the system or need to debug configuration issues
+
+#### **API References** (Programmatic Integration)
+- **Focus**: Complete API documentation for programmatic configuration management
+- **Audience**: Developers writing code that interacts with the configuration system
+- **Content**: Function signatures, class hierarchies, code examples, parameter options
+- **When to use**: You're writing code that loads, modifies, or validates configuration
+
+## Configuration System Features
+
+### 🔧 **Core Capabilities**
+- Type-safe configuration with Pydantic models
 - Environment variable substitution for secrets
+- Multi-file configuration with inheritance
+- Runtime validation and hot reload
+
+### ⚡ **Performance & Reliability**
+- In-memory caching with LRU eviction
+- Thread-safe concurrent access
+- Configuration metrics and monitoring
+- Graceful error handling and recovery
 - Automatic sensitive value masking in logs
 - Configuration validation and security scanning
-- Permission and access control checking
 
 ## Architecture Overview
 
@@ -86,18 +109,38 @@ The system supports loading configuration from multiple sources in priority orde
 4. **User Directory** - `~/.agentic/config.yaml`
 5. **System Directory** - `/etc/agentic/config.yaml`
 
-## Next Steps
+## Quick Configuration Workflows
 
-- 🚀 **New to the system?** Start with [Getting Started](getting-started.md)
-- 📖 **Need reference docs?** See [Configuration Reference](reference.md)
-- 🔧 **Need validation tools?** Check [Tools & Utilities](tools.md)
-- 🔒 **Security concerns?** Check [Security Guide](security.md)
-- 🐛 **Having issues?** Visit [Troubleshooting](troubleshooting.md)
-- 💡 **Looking for examples?** Browse [Configuration Examples](../config/examples/)
+### 🎯 **Common User Journeys** 
 
-## Support
+#### **"I'm setting up a new team"**
+1. **[Installation Guide](../getting-started/installation.md)** → Set up environment variables and API keys
+2. **[User Configuration Guide](../user-guide/configuration.md)** → Choose team template (small/enterprise)
+3. **[User Troubleshooting](../user-guide/troubleshooting.md)** → If you encounter issues
 
-- **Documentation Issues**: File an issue in the repository
-- **Configuration Help**: Check troubleshooting guide first
-- **Security Concerns**: Follow responsible disclosure process
-- **Feature Requests**: Create enhancement issues with use cases
+#### **"I'm developing against the config system"**
+1. **[Configuration Technical Guide](getting-started.md)** → Understand system internals
+2. **[Configuration API Reference](../api/configuration-api.md)** → Programmatic usage
+3. **[Tools & Utilities](tools.md)** → Validation and debugging tools
+
+#### **"I'm implementing security/operations"**
+1. **[Security Guide](security.md)** → Security best practices and credential management
+2. **[Configuration Reference](reference.md)** → Complete technical reference
+3. **[Configuration Troubleshooting](troubleshooting.md)** → Advanced debugging
+
+## Configuration Documentation Maintenance
+
+This hub is maintained to provide clear navigation between the different types of configuration documentation. Each guide serves a specific purpose:
+
+- **No duplication**: Each guide has a distinct focus and audience
+- **Clear cross-references**: Guides reference each other appropriately
+- **Progressive disclosure**: Start simple, dive deeper as needed
+- **Audience-specific**: Content matches the user's immediate needs
+
+## Getting Help
+
+- **🛠️ Not sure which troubleshooting guide to use?**: Visit the [**Troubleshooting Hub**](../troubleshooting-hub.md) to find the right guide for your issue type
+- **User configuration issues**: Start with [User Troubleshooting](../user-guide/troubleshooting.md)
+- **Technical configuration problems**: See [Configuration Troubleshooting](troubleshooting.md)
+- **Environment setup issues**: Check [Installation Troubleshooting](../getting-started/installation.md#troubleshooting)
+- **Documentation gaps**: File an issue in the repository
