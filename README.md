@@ -2,11 +2,27 @@
 
 An automated system for monitoring, analyzing, and fixing failed GitHub pull request checks using LLM-powered analysis and the Claude Code SDK.
 
-## Overview
+## 🚀 Quick Start
+
+**Ready to get started?** Choose your path:
+
+### 👥 **For Users** (DevOps, Teams, Admins)
+- **🏃‍♂️ [Quick Start Guide](docs/getting-started/README.md)** - Get running in 15 minutes
+- **📖 [User Guide](docs/user-guide/README.md)** - Configuration, monitoring, and troubleshooting
+- **🔧 [Installation Guide](docs/getting-started/installation.md)** - Production deployment setup
+
+### 👨‍💻 **For Developers** (Contributors)
+- **🛠️ [Development Guidelines](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development setup and standards
+- **🧪 [Testing Guidelines](TESTING_GUIDELINES.md)** - Testing patterns and best practices
+- **📝 [Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+
+---
+
+## System Overview
 
 This system orchestrates multiple workers to handle PR monitoring, failure analysis, automated fixing, and multi-agent code reviews. It provides intelligent automation for common CI/CD failures while escalating complex issues to human developers.
 
-## Features
+### Key Features
 
 - **Automated PR Monitoring**: Continuously monitors GitHub repositories for PR check failures
 - **Intelligent Failure Analysis**: Uses LLMs to categorize and understand check failures
@@ -14,47 +30,36 @@ This system orchestrates multiple workers to handle PR monitoring, failure analy
 - **Multi-Agent Reviews**: Orchestrates multiple AI agents for comprehensive code reviews
 - **Smart Escalation**: Routes complex issues to human developers via Telegram/Slack
 
-## Architecture
+### Architecture
 
 See [DIAGRAMS.md](DIAGRAMS.md) for detailed system architecture and workflow diagrams.
 
 ## Installation
 
-### Prerequisites
+For detailed installation instructions, see our user-focused guides:
 
-- Python 3.11+
-- PostgreSQL 12+
-- Docker (for running tests with testcontainers)
-- Redis (optional, for queue management)
+- **[Quick Start Guide](docs/getting-started/README.md)** - Get running in 15 minutes with minimal setup
+- **[Installation Guide](docs/getting-started/installation.md)** - Comprehensive installation for all environments
+- **[First Deployment Guide](docs/getting-started/first-deployment.md)** - Production deployment walkthrough
 
-### Setup
+### Quick Installation
 
-1. Clone the repository:
 ```bash
+# Clone and install
 git clone https://github.com/feddericovonwernich/agentic-coding-workflow.git
 cd agentic-coding-workflow
-```
-
-2. Install dependencies:
-```bash
 pip install -r requirements.txt
-```
 
-3. Set up environment variables:
-```bash
+# Configure environment
 cp .env.example .env
-# Edit .env with your configuration
-```
+# Edit .env with your GitHub token and LLM API keys
 
-4. Start the database:
-```bash
-docker-compose up -d postgres
-```
-
-5. Run database migrations:
-```bash
+# Setup database and start
 alembic upgrade head
+python -m src.workers.monitor
 ```
+
+**Need help?** Check the [Troubleshooting Guide](docs/user-guide/troubleshooting.md) for common issues.
 
 ## Testing
 
@@ -62,48 +67,53 @@ alembic upgrade head
 # Run all tests
 pytest
 
-# Run only unit tests (fast)
+# Run only unit tests (fast, uses mocks)
 pytest -m unit
 
-# Run integration tests (requires Docker)
+# Run integration tests (uses testcontainers for real databases)
 pytest -m integration
 
 # Run with coverage
 pytest --cov=src --cov-report=html
 ```
 
-For detailed testing guidelines, see [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md).
+**For Developers:** See [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) for comprehensive testing patterns and best practices.
 
 ## Development
 
+**For Contributors:** This section is for developers contributing to the project.
+
+### Quick Development Setup
+
 ```bash
-# Start development database
+# Start development services
 docker-compose up postgres
+
+# Install development dependencies
+pip install -r requirements-dev.txt
 
 # Run database migrations
 alembic upgrade head
 
-# Format and lint code
+# Code quality checks
 ruff format .
 ruff check . --fix
-
-# Type checking
 mypy src/
 ```
 
-For comprehensive development guidelines, see [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
+**Complete Developer Guide:** [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) - Comprehensive development setup, coding standards, and best practices.
 
 ## Configuration
 
-The system uses environment variables for configuration. See `.env.example` for all available options.
+### For Users
 
-Key configuration areas:
-- Database connection and pooling
-- GitHub API authentication
-- LLM provider settings
-- Notification channels
+**Complete User Configuration Guide:** [Configuration Guide](docs/user-guide/configuration.md) - Repository setup, notifications, team configuration, and performance tuning.
 
-For detailed configuration documentation, see the configuration section in [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md).
+**Quick Start:** Copy `.env.example` to `.env` and configure your GitHub token and LLM API keys.
+
+### For Developers
+
+**Technical Configuration:** See [docs/config/README.md](docs/config/README.md) for programmatic configuration management and development setup.
 
 ## Project Structure
 
@@ -128,19 +138,32 @@ agentic-coding-workflow/
 
 ## Documentation
 
-### 📚 Complete Documentation
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and development workflow
-- **[DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development best practices and coding standards
-- **[TESTING_GUIDELINES.md](TESTING_GUIDELINES.md)** - Testing guidelines and patterns for reliable code
-- **[DOCUMENTATION_GUIDELINES.md](DOCUMENTATION_GUIDELINES.md)** - Documentation standards and best practices for maintainers
-- **[SECURITY.md](SECURITY.md)** - Security policies and vulnerability reporting
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+### 👥 **For Users** (DevOps, Teams, System Administrators)
 
-### 🚀 Quick Links
+**Getting Started**
+- **[Quick Start Guide](docs/getting-started/README.md)** - Get running in 15 minutes
+- **[Installation Guide](docs/getting-started/installation.md)** - Comprehensive setup instructions
+- **[First Deployment](docs/getting-started/first-deployment.md)** - Production deployment walkthrough
+
+**Operations & Management**
+- **[User Guide](docs/user-guide/README.md)** - Complete user navigation and workflows
+- **[Configuration Guide](docs/user-guide/configuration.md)** - Repository setup, notifications, and tuning
+- **[Monitoring Guide](docs/user-guide/monitoring.md)** - Dashboards, alerts, and observability
+- **[Troubleshooting Guide](docs/user-guide/troubleshooting.md)** - Common issues and solutions
+
+### 👨‍💻 **For Developers** (Contributors)
+
+**Development**
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
+- **[Development Guidelines](DEVELOPMENT_GUIDELINES.md)** - Comprehensive development setup and coding standards
+- **[Testing Guidelines](TESTING_GUIDELINES.md)** - Testing patterns and best practices
+- **[Documentation Guidelines](DOCUMENTATION_GUIDELINES.md)** - Documentation standards for maintainers
+
+**Technical Reference**
 - **[System Architecture](DIAGRAMS.md)** - Detailed system diagrams and workflows
-- **[API Documentation](docs/api/)** - GitHub client and configuration APIs *(coming soon)*
-- **[Deployment Guide](docs/deployment/)** - Production deployment instructions *(coming soon)*
-- **[User Guide](docs/user-guide/)** - End-user documentation *(coming soon)*
+- **[Configuration API](docs/config/README.md)** - Programmatic configuration management
+- **[Security Policy](SECURITY.md)** - Security policies and vulnerability reporting
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
 
 ## Contributing
 

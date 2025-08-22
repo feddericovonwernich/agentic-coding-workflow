@@ -31,34 +31,23 @@ Before contributing, ensure you have:
 
 ### Setting Up Your Development Environment
 
-1. **Fork and Clone the Repository**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/agentic-coding-workflow.git
-   cd agentic-coding-workflow
-   ```
+**Quick Setup:**
+1. Fork the repository
+2. Follow the [Development Guidelines](DEVELOPMENT_GUIDELINES.md) setup section
+3. Complete the [Installation Guide](docs/getting-started/installation.md) development setup
+4. Verify with: `pytest tests/unit/ -v`
 
-2. **Create a Virtual Environment**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
+**Key Development Commands:**
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
 
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt  # Development dependencies
-   ```
+# Set up code quality hooks
+pre-commit install
 
-4. **Set Up Pre-commit Hooks**
-   ```bash
-   pre-commit install
-   ```
-
-5. **Run Tests to Verify Setup**
-   ```bash
-   pytest tests/unit/ -v  # Quick unit tests
-   pytest tests/ -v       # All tests (requires Docker)
-   ```
+# Run development database
+docker-compose up postgres
+```
 
 ## Development Process
 

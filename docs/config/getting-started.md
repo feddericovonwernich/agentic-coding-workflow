@@ -1,12 +1,13 @@
-# Getting Started with Configuration
+# Configuration Quick Start
 
-This guide will help you set up the configuration system in under 15 minutes. Follow these steps to get running quickly.
+This guide covers configuration-specific setup for developers who need to understand the configuration system internals.
+
+**For users**: See the [User Quick Start Guide](../getting-started/README.md) for complete setup instructions.
 
 ## Prerequisites
 
-- Python 3.9 or higher
-- Basic understanding of YAML format
-- Environment variables setup capability
+- Completed [basic installation](../getting-started/installation.md)
+- Understanding of YAML configuration format
 
 ## Step 1: Copy Example Configuration (2 minutes)
 
@@ -19,34 +20,21 @@ cp config.example.yaml config.yaml
 
 This creates your local configuration file that won't be committed to version control.
 
-## Step 2: Set Required Environment Variables (5 minutes)
+## Step 2: Environment Variables
 
-The configuration system requires certain environment variables. Create a `.env` file or set them in your shell:
+**For complete environment setup**: See the [Installation Guide](../getting-started/installation.md#environment-setup).
 
-### Minimal Required Variables
-
-```bash
-# Database Configuration
-export DATABASE_URL="sqlite:///./agentic.db"  # For local development
-
-# GitHub Integration
-export GITHUB_TOKEN="ghp_your_github_token_here"
-
-# LLM Provider (choose one)
-export ANTHROPIC_API_KEY="sk-ant-your_anthropic_key_here"
-# OR
-export OPENAI_API_KEY="sk-your_openai_key_here"
-```
-
-### Optional but Recommended
+**Configuration-specific variables for development:**
 
 ```bash
-# Redis for production-like queue
-export REDIS_URL="redis://localhost:6379/0"
+# Enable configuration debugging
+export CONFIG_DEBUG=true
 
-# Notifications (optional for development)
-export TELEGRAM_BOT_TOKEN="your_telegram_bot_token"
-export TELEGRAM_CHAT_ID="your_telegram_chat_id"
+# Configuration file validation
+export CONFIG_VALIDATE_ON_LOAD=true
+
+# Override default config location
+export CONFIG_FILE_PATH=./config-dev.yaml
 ```
 
 ## Step 3: Basic Configuration Setup (3 minutes)
