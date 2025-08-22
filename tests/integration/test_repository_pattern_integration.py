@@ -1,11 +1,11 @@
 """
-Integration tests for repository pattern with real database.
+Integration tests for repository pattern with database.
 
 Why: Ensure the repository pattern implementation works correctly with actual
      PostgreSQL database operations, including model persistence, relationships,
      and complex queries
 What: Tests repository operations, model relationships, transactions, and
-      business logic methods against a real database instance
+      business logic methods against a database instance
 How: Uses testcontainers to create a PostgreSQL instance and runs our
      SQLAlchemy models and repositories against it with actual data persistence
 """
@@ -59,7 +59,7 @@ def postgres_container() -> PostgresContainer:
 
 
 @pytest.fixture
-def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfig:
+def database_config(postgres_container: PostgresContainer) -> DatabaseConfig:
     """Create database config for real PostgreSQL instance."""
     reset_database_config()
     reset_connection_manager()
@@ -80,10 +80,10 @@ def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfi
 
 @pytest_asyncio.fixture
 async def connection_manager(
-    real_database_config: DatabaseConfig,
+    database_config: DatabaseConfig,
 ) -> AsyncGenerator[DatabaseConnectionManager, None]:
-    """Create connection manager with real database."""
-    manager = DatabaseConnectionManager(real_database_config)
+    """Create connection manager with database."""
+    manager = DatabaseConnectionManager(database_config)
     yield manager
     await manager.close()
 
@@ -109,9 +109,8 @@ async def database_session(
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestRepositoryIntegration:
-    """Test Repository model and repository with real database."""
+    """Test Repository model and repository with database."""
 
     async def test_repository_crud_operations(
         self, database_session: AsyncSession
@@ -172,7 +171,7 @@ class TestRepositoryIntegration:
         self, database_session: AsyncSession
     ) -> None:
         """
-        Why: Verify Repository domain-specific methods work with real database
+        Why: Verify Repository domain-specific methods work with database
         What: Tests get_by_url, needs_polling, failure tracking methods
         How: Creates repositories and tests business logic methods against database
         """
@@ -217,9 +216,8 @@ class TestRepositoryIntegration:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestPullRequestIntegration:
-    """Test PullRequest model and repository with real database."""
+    """Test PullRequest model and repository with database."""
 
     @pytest.fixture
     async def test_repository(self, database_session: AsyncSession) -> Repository:
@@ -290,7 +288,7 @@ class TestPullRequestIntegration:
         self, database_session: AsyncSession, test_repository: Repository
     ) -> None:
         """
-        Why: Verify complex PR queries work correctly with real database
+        Why: Verify complex PR queries work correctly with database
         What: Tests active PR queries, search functionality, bulk operations
         How: Creates multiple PRs and tests various query methods
         """
@@ -368,9 +366,8 @@ class TestPullRequestIntegration:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestCheckRunIntegration:
-    """Test CheckRun model and repository with real database."""
+    """Test CheckRun model and repository with database."""
 
     @pytest.fixture
     async def test_pull_request(self, database_session: AsyncSession) -> PullRequest:
@@ -463,7 +460,7 @@ class TestCheckRunIntegration:
         self, database_session: AsyncSession, test_pull_request: PullRequest
     ) -> None:
         """
-        Why: Verify CheckRun queries work correctly with real database
+        Why: Verify CheckRun queries work correctly with database
         What: Tests domain-specific queries like get_by_external_id, failed checks
         How: Creates multiple check runs and tests various query methods
         """
@@ -516,9 +513,8 @@ class TestCheckRunIntegration:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestStateHistoryIntegration:
-    """Test PRStateHistory model and repository with real database."""
+    """Test PRStateHistory model and repository with database."""
 
     @pytest.fixture
     async def test_pr_with_history(self, database_session: AsyncSession) -> PullRequest:
@@ -599,7 +595,7 @@ class TestStateHistoryIntegration:
         self, database_session: AsyncSession, test_pr_with_history: PullRequest
     ) -> None:
         """
-        Why: Verify state history queries work with real database
+        Why: Verify state history queries work with database
         What: Tests history retrieval, timeline generation, statistics
         How: Creates multiple transitions and tests query methods
         """
@@ -656,9 +652,8 @@ class TestStateHistoryIntegration:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestTransactionIntegration:
-    """Test transaction management with real database."""
+    """Test transaction management with database."""
 
     async def test_successful_transaction(self, database_session: AsyncSession) -> None:
         """
@@ -743,9 +738,8 @@ class TestTransactionIntegration:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 class TestComplexQueries:
-    """Test complex queries with real database."""
+    """Test complex queries with database."""
 
     @pytest.fixture
     async def complex_test_data(self, database_session: AsyncSession) -> dict[str, Any]:
@@ -822,7 +816,7 @@ class TestComplexQueries:
         self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
-        Why: Verify complex join queries work correctly with real database
+        Why: Verify complex join queries work correctly with database
         What: Tests get_prs_with_failed_checks uses proper subquery with joins
         How: Creates PRs with different check outcomes and tests filtering
         """
@@ -840,7 +834,7 @@ class TestComplexQueries:
         self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
-        Why: Verify statistics queries work correctly with real data
+        Why: Verify statistics queries work correctly with data
         What: Tests get_pr_statistics returns accurate counts by state
         How: Creates known data set and validates statistics calculations
         """
@@ -861,7 +855,7 @@ class TestComplexQueries:
         self, database_session: AsyncSession, complex_test_data: dict[str, Any]
     ) -> None:
         """
-        Why: Verify check run statistics work with real database
+        Why: Verify check run statistics work with database
         What: Tests get_check_statistics returns accurate failure rates
         How: Creates checks with known outcomes and validates statistics
         """

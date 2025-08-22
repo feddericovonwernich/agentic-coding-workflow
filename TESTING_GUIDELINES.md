@@ -50,7 +50,7 @@ This document provides comprehensive testing guidelines for the Agentic Coding W
 
 ```
     Integration Tests (30%)
-      Real Database
+      PostgreSQL (testcontainers)
     Complex Scenarios
      E2E Workflows
   /                     \
@@ -63,7 +63,7 @@ Fast & Isolated
 
 **Distribution Guidelines:**
 - **70% Unit Tests**: Fast, isolated testing with mocked dependencies
-- **30% Integration Tests**: Real service testing with actual database
+- **30% Integration Tests**: Testing with actual PostgreSQL database using testcontainers
 
 ## Test Structure and Organization
 
@@ -255,13 +255,13 @@ async def test_pull_request_repository_creates_with_valid_data():
 
 ### When to Use Integration Tests (30% of tests)
 
-- Testing with real database using testcontainers
+- Testing with actual PostgreSQL database using testcontainers
 - Complex queries with actual data relationships
 - Transaction behavior and rollback scenarios
 - End-to-end workflow testing
 - Performance validation with realistic data
 
-### Real Database Testing
+### Integration Database Testing
 
 Use testcontainers for integration tests:
 
@@ -688,8 +688,7 @@ addopts = [
 testpaths = ["tests"]
 markers = [
     "unit: Unit tests with mocked dependencies",
-    "integration: Integration tests with real services", 
-    "real_database: Tests requiring actual PostgreSQL database",
+    "integration: Integration tests with actual PostgreSQL database using testcontainers",
     "slow: Tests that take a long time to run",
     "performance: Performance benchmark tests",
 ]

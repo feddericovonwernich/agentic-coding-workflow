@@ -100,8 +100,7 @@ addopts = [
 testpaths = ["tests"]
 markers = [
     "unit: Unit tests with mocked dependencies",
-    "integration: Integration tests with real services",
-    "real_database: Tests requiring actual PostgreSQL database",
+    "integration: Integration tests with actual PostgreSQL database using testcontainers",
     "slow: Tests that take a long time to run",
 ]
 asyncio_mode = "auto"

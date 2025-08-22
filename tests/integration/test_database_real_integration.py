@@ -1,8 +1,8 @@
 """
-Real integration tests for database infrastructure using testcontainers.
+Integration tests for database infrastructure using testcontainers.
 
-These tests spin up an actual PostgreSQL database in a Docker container
-and perform real database operations to validate the infrastructure.
+These tests spin up a PostgreSQL database in a Docker container
+and perform database operations to validate the infrastructure.
 
 Requirements:
 - Docker must be installed and running
@@ -33,7 +33,7 @@ from src.database.health import (
 @pytest.fixture(scope="module")
 def postgres_container() -> Generator[PostgresContainer, None, None]:
     """
-    Spin up a real PostgreSQL database in a Docker container.
+    Spin up a PostgreSQL database in a Docker container.
 
     This fixture has module scope, so the container is reused across all tests
     in this module for efficiency.
@@ -51,7 +51,7 @@ def postgres_container() -> Generator[PostgresContainer, None, None]:
 
 
 @pytest.fixture
-def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfig:
+def database_config(postgres_container: PostgresContainer) -> DatabaseConfig:
     """
     Create a DatabaseConfig that points to the real test database.
 
@@ -80,7 +80,7 @@ def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfi
         pool_pre_ping=True,
     )
 
-    # Create config with real database URL
+    # Create config with database URL
     config = DatabaseConfig(
         database_url=async_url,
         pool=pool_config,  # Use proper pool config object
@@ -90,8 +90,8 @@ def real_database_config(postgres_container: PostgresContainer) -> DatabaseConfi
 
 
 @pytest_asyncio.fixture
-async def real_connection_manager(
-    real_database_config: DatabaseConfig,
+async def connection_manager(
+    database_config: DatabaseConfig,
 ) -> AsyncGenerator[DatabaseConnectionManager, None]:
     """
     Create a DatabaseConnectionManager connected to the real test database.
@@ -99,43 +99,42 @@ async def real_connection_manager(
     This fixture provides a connection manager that actually connects to
     the PostgreSQL container.
     """
-    manager = DatabaseConnectionManager(real_database_config)
+    manager = DatabaseConnectionManager(database_config)
     yield manager
     # Cleanup
     await manager.close()
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
-class TestRealDatabaseConnection:
-    """Test actual database connectivity with a real PostgreSQL instance."""
+class TestDatabaseConnection:
+    """Test actual database connectivity with a PostgreSQL instance."""
 
     @pytest.mark.asyncio
-    async def test_real_database_connection(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_connection(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify we can actually connect to a real PostgreSQL database
+        Why: Verify we can actually connect to a PostgreSQL database
         What: Tests basic connectivity by executing a simple query
-        How: Uses real_connection_manager to connect to PostgreSQL container
+        How: Uses connection_manager to connect to PostgreSQL container
              and executes SELECT 1 to verify the connection works
         """
-        async with real_connection_manager.get_session() as session:
+        async with connection_manager.get_session() as session:
             result = await session.execute(text("SELECT 1"))
             value = result.scalar()
             assert value == 1
 
     @pytest.mark.asyncio
-    async def test_real_database_version_check(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_version_check(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify we can query database metadata from real PostgreSQL
+        Why: Verify we can query database metadata from PostgreSQL
         What: Tests ability to retrieve PostgreSQL version information
-        How: Executes SELECT version() against the real database container
+        How: Executes SELECT version() against the database container
              and validates we get a proper PostgreSQL version string
         """
-        async with real_connection_manager.get_session() as session:
+        async with connection_manager.get_session() as session:
             result = await session.execute(text("SELECT version()"))
             version = result.scalar()
             assert version is not None
@@ -143,16 +142,16 @@ class TestRealDatabaseConnection:
             assert "15" in version  # We're using postgres:15-alpine
 
     @pytest.mark.asyncio
-    async def test_real_database_table_operations(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_table_operations(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify we can perform DDL and DML operations on real database
+        Why: Verify we can perform DDL and DML operations on database
         What: Tests CREATE TABLE, INSERT, SELECT, and DROP operations
-        How: Creates a temporary table in the real database, performs CRUD
+        How: Creates a temporary table in the database, performs CRUD
              operations, and validates data integrity
         """
-        async with real_connection_manager.get_session() as session:
+        async with connection_manager.get_session() as session:
             # Create table
             await session.execute(
                 text("""
@@ -192,17 +191,17 @@ class TestRealDatabaseConnection:
             await session.commit()
 
     @pytest.mark.asyncio
-    async def test_real_database_transaction_rollback(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_transaction_rollback(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify transaction rollback works correctly with real database
+        Why: Verify transaction rollback works correctly with database
         What: Tests that rolled back transactions don't persist data
         How: Creates a table, inserts data, rolls back, and verifies
-             the data was not persisted in the real database
+             the data was not persisted in the database
         """
         # First transaction - create table and rollback insert
-        async with real_connection_manager.get_session() as session:
+        async with connection_manager.get_session() as session:
             await session.execute(
                 text("""
                 CREATE TABLE IF NOT EXISTS rollback_test (
@@ -215,7 +214,7 @@ class TestRealDatabaseConnection:
 
         # Second transaction - insert and rollback
         try:
-            async with real_connection_manager.get_session() as session:
+            async with connection_manager.get_session() as session:
                 await session.execute(
                     text("""
                     INSERT INTO rollback_test (data) VALUES ('should_not_exist')
@@ -227,7 +226,7 @@ class TestRealDatabaseConnection:
             pass  # Expected
 
         # Third transaction - verify rollback worked
-        async with real_connection_manager.get_session() as session:
+        async with connection_manager.get_session() as session:
             result = await session.execute(
                 text("""
                 SELECT COUNT(*) FROM rollback_test
@@ -241,18 +240,18 @@ class TestRealDatabaseConnection:
             await session.commit()
 
     @pytest.mark.asyncio
-    async def test_real_database_concurrent_sessions(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_concurrent_sessions(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify connection pooling works with real database connections
+        Why: Verify connection pooling works with database connections
         What: Tests multiple concurrent database sessions
         How: Creates multiple async tasks that each use a database session
              concurrently, validating the connection pool handles them properly
         """
 
         async def execute_query(session_id: int) -> int:
-            async with real_connection_manager.get_session() as session:
+            async with connection_manager.get_session() as session:
                 result = await session.execute(
                     text(
                         "SELECT CAST(:id AS INTEGER) as session_id, NOW() as timestamp"
@@ -272,21 +271,20 @@ class TestRealDatabaseConnection:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
-class TestRealDatabaseHealth:
-    """Test health monitoring with a real PostgreSQL instance."""
+class TestDatabaseHealth:
+    """Test health monitoring with a PostgreSQL instance."""
 
     @pytest.mark.asyncio
-    async def test_real_health_check_connectivity(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_health_check_connectivity(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify health checks work against real database
+        Why: Verify health checks work against database
         What: Tests connectivity health check returns HEALTHY
-        How: Creates DatabaseHealthChecker with real connection manager
+        How: Creates DatabaseHealthChecker with connection manager
              and validates connectivity check succeeds
         """
-        health_checker = DatabaseHealthChecker(real_connection_manager)
+        health_checker = DatabaseHealthChecker(connection_manager)
         result = await health_checker.check_connectivity()
 
         assert result.status == HealthStatus.HEALTHY
@@ -296,16 +294,16 @@ class TestRealDatabaseHealth:
         assert "Connected successfully" in result.details["response"]
 
     @pytest.mark.asyncio
-    async def test_real_health_check_write_permissions(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_health_check_write_permissions(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify write permission checks work with real database
+        Why: Verify write permission checks work with database
         What: Tests ability to create, write, and drop tables
         How: Runs write permission health check which creates a temp table,
-             inserts data, and drops it in the real database
+             inserts data, and drops it in the database
         """
-        health_checker = DatabaseHealthChecker(real_connection_manager)
+        health_checker = DatabaseHealthChecker(connection_manager)
         result = await health_checker.check_write_permissions()
 
         assert result.status == HealthStatus.HEALTHY
@@ -316,16 +314,16 @@ class TestRealDatabaseHealth:
         assert "drop" in result.details["operations"]
 
     @pytest.mark.asyncio
-    async def test_real_health_check_response_time(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_health_check_response_time(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify response time checks work with real database latency
+        Why: Verify response time checks work with database latency
         What: Tests database response time measurement
-        How: Runs response time health check against real database
+        How: Runs response time health check against database
              and validates it completes within acceptable time
         """
-        health_checker = DatabaseHealthChecker(real_connection_manager)
+        health_checker = DatabaseHealthChecker(connection_manager)
         result = await health_checker.check_response_time(query_timeout=5.0)
 
         assert result.status == HealthStatus.HEALTHY
@@ -334,16 +332,16 @@ class TestRealDatabaseHealth:
         assert "table_count" in result.details
 
     @pytest.mark.asyncio
-    async def test_real_comprehensive_health_check(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_comprehensive_health_check(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify all health checks work together against real database
+        Why: Verify all health checks work together against database
         What: Tests comprehensive health check suite
         How: Runs all health checks (connectivity, pool, version, permissions,
-             response time) against the real PostgreSQL container
+             response time) against the PostgreSQL container
         """
-        health_checker = DatabaseHealthChecker(real_connection_manager)
+        health_checker = DatabaseHealthChecker(connection_manager)
         report = await health_checker.run_comprehensive_health_check(
             include_performance=True, query_timeout=2.0
         )
@@ -363,13 +361,12 @@ class TestRealDatabaseHealth:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
-class TestRealDatabasePooling:
-    """Test connection pooling behavior with real database."""
+class TestDatabasePooling:
+    """Test connection pooling behavior with database."""
 
     @pytest.mark.asyncio
-    async def test_real_connection_pool_limits(
-        self, real_database_config: DatabaseConfig
+    async def test_connection_pool_limits(
+        self, database_config: DatabaseConfig
     ) -> None:
         """
         Why: Verify connection pool can handle multiple concurrent connections
@@ -378,7 +375,7 @@ class TestRealDatabasePooling:
              concurrent connections, and validates they all work
         """
         # Create manager with small pool for testing
-        config = real_database_config
+        config = database_config
         config.pool.pool_size = 2
         config.pool.max_overflow = 1
 
@@ -404,8 +401,8 @@ class TestRealDatabasePooling:
             await manager.close()
 
     @pytest.mark.asyncio
-    async def test_real_connection_pool_config(
-        self, real_database_config: DatabaseConfig
+    async def test_connection_pool_config(
+        self, database_config: DatabaseConfig
     ) -> None:
         """
         Why: Verify connection pool configuration is applied correctly
@@ -414,7 +411,7 @@ class TestRealDatabasePooling:
              basic connection functionality works as expected
         """
         # Create manager with custom pool config
-        config = real_database_config
+        config = database_config
         config.pool.pool_size = 3
         config.pool.max_overflow = 2
         config.pool.pool_timeout = 10
@@ -442,14 +439,13 @@ class TestRealDatabasePooling:
 
 
 @pytest.mark.integration
-@pytest.mark.real_database
 @pytest.mark.slow
-class TestRealDatabaseStress:
-    """Stress tests with real database to validate stability."""
+class TestDatabaseStress:
+    """Stress tests with database to validate stability."""
 
     @pytest.mark.asyncio
-    async def test_real_database_many_operations(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_many_operations(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
         Why: Verify system handles many sequential operations reliably
@@ -458,7 +454,7 @@ class TestRealDatabaseStress:
              all complete successfully without connection issues
         """
         for i in range(100):
-            async with real_connection_manager.get_session() as session:
+            async with connection_manager.get_session() as session:
                 result = await session.execute(
                     text("SELECT CAST(:num AS INTEGER) * 2 as result"), {"num": i}
                 )
@@ -466,18 +462,18 @@ class TestRealDatabaseStress:
                 assert value == i * 2
 
     @pytest.mark.asyncio
-    async def test_real_database_concurrent_stress(
-        self, real_connection_manager: DatabaseConnectionManager
+    async def test_database_concurrent_stress(
+        self, connection_manager: DatabaseConnectionManager
     ) -> None:
         """
-        Why: Verify system handles high concurrency with real database
+        Why: Verify system handles high concurrency with database
         What: Tests many concurrent database operations
         How: Executes 50 concurrent database queries simultaneously
              and validates all complete successfully
         """
 
         async def stress_query(query_id: int) -> tuple[int, int]:
-            async with real_connection_manager.get_session() as session:
+            async with connection_manager.get_session() as session:
                 result = await session.execute(
                     text("""
                     SELECT
