@@ -207,6 +207,7 @@ agentic-coding-workflow/
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and development workflow
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Comprehensive development best practices and coding standards
 - **[TESTING.md](TESTING.md)** - Testing guidelines and patterns for reliable code
+- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Documentation standards and best practices for maintainers
 - **[SECURITY.md](SECURITY.md)** - Security policies and vulnerability reporting
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
 

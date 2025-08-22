@@ -243,8 +243,12 @@ Update documentation when you:
 
 ### Documentation Standards
 
-- Use clear, concise language
-- Include code examples where helpful
+For comprehensive documentation guidelines, see [DOCUMENTATION.md](DOCUMENTATION.md). Key points:
+
+- Use clear, concise language following our style guide
+- Include complete, runnable code examples
+- Write for both human developers and AI agents
+- Follow the Why/What/How pattern for complex explanations
 - Keep documentation close to code (docstrings for API docs)
 - Update both user and developer documentation as needed
 - Ensure all links work and references are valid
@@ -254,6 +258,7 @@ Update documentation when you:
 - `README.md`: Project overview and quick start
 - `DEVELOPMENT.md`: Development guidelines and best practices
 - `TESTING.md`: Testing guidelines and patterns
+- `DOCUMENTATION.md`: Documentation standards and best practices
 - `docs/`: Detailed technical documentation
 - Code docstrings: API documentation
 
