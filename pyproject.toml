@@ -101,6 +101,8 @@ testpaths = ["tests"]
 markers = [
     "unit: Unit tests with mocked dependencies",
     "integration: Integration tests with actual PostgreSQL database using testcontainers",
+    "database: Tests that require real database connections",
+    "performance: Performance and load testing scenarios",
     "slow: Tests that take a long time to run",
 ]
 asyncio_mode = "auto"
