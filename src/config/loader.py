@@ -256,7 +256,8 @@ class ConfigurationLoader:
 
     def _validate_database_config(self) -> None:
         """Validate database configuration."""
-        assert self._config is not None
+        if self._config is None:
+            raise RuntimeError("No configuration loaded for database validation")
         db_config = self._config.database
 
         # Basic URL validation is done in the model
@@ -269,7 +270,8 @@ class ConfigurationLoader:
 
     def _validate_queue_config(self) -> None:
         """Validate queue configuration."""
-        assert self._config is not None
+        if self._config is None:
+            raise RuntimeError("No configuration loaded for queue validation")
         queue_config = self._config.queue
 
         if queue_config.provider == "redis" and not queue_config.url.startswith(
@@ -281,7 +283,8 @@ class ConfigurationLoader:
 
     def _validate_llm_configs(self) -> None:
         """Validate LLM provider configurations."""
-        assert self._config is not None
+        if self._config is None:
+            raise RuntimeError("No configuration loaded for LLM validation")
         if not self._config.llm:
             raise ConfigurationValidationError(
                 "At least one LLM provider must be configured"
@@ -303,7 +306,8 @@ class ConfigurationLoader:
 
     def _validate_notification_configs(self) -> None:
         """Validate notification configurations."""
-        assert self._config is not None
+        if self._config is None:
+            raise RuntimeError("No configuration loaded for notification validation")
         if not self._config.notification.enabled:
             return
 
@@ -341,7 +345,8 @@ class ConfigurationLoader:
 
     def _validate_repository_configs(self) -> None:
         """Validate repository configurations."""
-        assert self._config is not None
+        if self._config is None:
+            raise RuntimeError("No configuration loaded for repository validation")
         if not self._config.repositories:
             raise ConfigurationValidationError(
                 "At least one repository must be configured"

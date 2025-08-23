@@ -351,3 +351,7 @@ async def unit_of_work(session: AsyncSession) -> AsyncGenerator[UnitOfWork, None
     except Exception:
         await uow.rollback()
         raise
+
+
+# Alias for compatibility with existing code
+transaction_scope = database_transaction

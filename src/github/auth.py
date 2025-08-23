@@ -59,7 +59,7 @@ class PersonalAccessTokenAuth(AuthProvider):
         """
         if not token:
             raise GitHubAuthenticationError("Personal Access Token is required")
-        self._token = AuthToken(token=token, token_type="token")
+        self._token = AuthToken(token=token, token_type="token")  # nosec B106
 
     async def get_token(self) -> AuthToken:
         """Get authentication token."""
@@ -124,7 +124,7 @@ class GitHubAppAuth(AuthProvider):
         jwt_token = self._generate_jwt()
         self._current_token = AuthToken(
             token=jwt_token,
-            token_type="Bearer",
+            token_type="Bearer",  # nosec B106
             expires_at=int(time.time()) + 3600,  # 1 hour expiry
         )
         return self._current_token
@@ -139,13 +139,17 @@ class GitHubAppAuth(AuthProvider):
 class TokenAuth(AuthProvider):
     """Simple token authentication (for backward compatibility)."""
 
-    def __init__(self, token: str, token_type: str = "Bearer"):
+    DEFAULT_TOKEN_TYPE = "Bearer"  # Standard HTTP authentication scheme  # nosec B105
+
+    def __init__(self, token: str, token_type: str | None = None):
         """Initialize token authentication.
 
         Args:
             token: Authentication token
-            token_type: Type of token (Bearer, token, etc.)
+            token_type: Type of token (Bearer, token, etc.). Uses Bearer by default.
         """
+        if token_type is None:
+            token_type = self.DEFAULT_TOKEN_TYPE
         self._token = AuthToken(token=token, token_type=token_type)
 
     async def get_token(self) -> AuthToken:

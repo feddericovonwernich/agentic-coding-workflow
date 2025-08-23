@@ -26,6 +26,27 @@ GitHub → Monitor → Queue → Analyzer → Router → Fix/Review/Notify → G
 
 **For comprehensive development guidance, see [Developer Documentation](docs/developer/README.md)**
 
+### Development Workflow with Specialized Agents
+
+**IMPORTANT**: Use these specialized agents for efficient development:
+
+1. **Architecture Planning** (`architecture-planner` agent)
+   - Use BEFORE implementing any new feature or significant refactoring
+   - Creates comprehensive technical plans in `scratch-pad/` directory
+   - Defines interfaces, coordination strategies, and implementation tasks
+
+2. **Parallel Implementation Phase**
+   - **ALWAYS run these agents IN PARALLEL when the plan allows:**
+     - **Code Implementation** (`code-implementer` agent): Reads plans from `scratch-pad/` and implements the code
+     - **Test Writing** (`test-implementor` agent): Creates comprehensive test suites based on the plan
+   - Both agents work independently from the same architectural plan
+   - Maximizes development efficiency through parallel execution
+
+3. **Documentation** (`code-documentator` agent)
+   - Use AFTER code and tests are complete
+   - Updates or creates documentation according to project standards
+   - Ensures all changes are properly documented
+
 ### Quick Reference
 
 **Code Quality**: Follow [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) (authoritative) and [Development Best Practices](docs/developer/best-practices.md) (practical guide)

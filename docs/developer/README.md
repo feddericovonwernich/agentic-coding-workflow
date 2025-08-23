@@ -15,6 +15,7 @@ Welcome to the Agentic Coding Workflow project! This guide serves as your **cent
 
 ### Understanding the System
 - **[System Architecture](architecture.md)** - System design, components, and data flow
+- **[PR Discovery System](../api/pr-discovery.md)** - High-performance PR and check run discovery API
 - **[Development Best Practices](best-practices.md)** - Consolidated coding standards and practices
 
 ### Development Workflows
@@ -101,12 +102,51 @@ python -m workers.monitor  # Individual worker
 ### Code Organization
 ```
 src/
-├── workers/          # Worker implementations
+├── workers/
+│   ├── discovery/    # PR Discovery system (core component)
+│   ├── monitor/      # PR monitoring workers
+│   ├── analyzer/     # Check analysis workers
+│   └── fixer/        # Automated fix workers
 ├── services/         # Shared services (GitHub, LLM, notifications)
 ├── repositories/     # Database access patterns
 ├── models/          # Data models and schemas
 └── config/          # Configuration management
 ```
+
+### Working with PR Discovery System
+
+The PR Discovery system is the core component for monitoring GitHub repositories at scale:
+
+**Key Components:**
+- **`src/workers/discovery/pr_discovery_engine.py`** - Main orchestrator for discovery cycles
+- **`src/workers/discovery/interfaces.py`** - Abstract interfaces for all components
+- **`src/workers/discovery/repository_scanner.py`** - GitHub API integration with caching
+- **`src/workers/discovery/state_detector.py`** - Real-time state change detection
+
+**Performance Characteristics:**
+- Processes 100+ repositories with 1000+ PRs each within 5-minute windows
+- Achieves >60% cache hit rates through intelligent ETag-based caching
+- Supports configurable concurrency (10-50 repositories concurrent)
+- Includes comprehensive error handling with partial success scenarios
+
+**Development Guidelines:**
+- Use dependency injection for all external services (GitHub API, cache, database)
+- Implement proper error boundaries with detailed error context
+- Apply rate limiting strategies to respect GitHub API limits
+- Use async/await throughout for optimal I/O performance
+
+**Example Integration:**
+```python
+# Basic PR Discovery usage
+from src.workers.discovery.pr_discovery_engine import PRDiscoveryEngine
+from src.workers.discovery.interfaces import DiscoveryConfig
+
+config = DiscoveryConfig(max_concurrent_repositories=20)
+results = await discovery_engine.run_discovery_cycle(repository_ids)
+```
+
+For complete API documentation, see [PR Discovery API](../api/pr-discovery.md).
+For performance optimization, see [PR Discovery Performance Guide](pr-discovery-performance.md).
 
 ## Documentation Standards
 

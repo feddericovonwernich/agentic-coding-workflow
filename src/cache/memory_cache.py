@@ -159,6 +159,10 @@ class MemoryCache(BaseCache[Any]):
 
             return len(expired_keys)
 
+    async def invalidate(self, pattern: str) -> int:
+        """Invalidate cache entries matching pattern. Alias for clear method."""
+        return await self.clear(pattern)
+
     def stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         return {

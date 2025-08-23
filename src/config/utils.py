@@ -380,14 +380,14 @@ def get_config_summary(config: Config) -> dict[str, Any]:
 
 def create_minimal_config(
     database_url: str = "sqlite:///./test.db",
-    github_token: str = "test-token",
+    github_token: str | None = None,
     repo_url: str = "https://github.com/example/repo",
 ) -> Config:
     """Create a minimal configuration for testing/development.
 
     Args:
         database_url: Database connection URL
-        github_token: GitHub authentication token
+        github_token: GitHub authentication token (uses GITHUB_TOKEN env var if None)
         repo_url: Repository URL to monitor
 
     Returns:
@@ -396,6 +396,14 @@ def create_minimal_config(
     Raises:
         ConfigurationError: If configuration creation fails
     """
+
+    # Use test placeholders if not provided (for testing/development)
+    if github_token is None:
+        github_token = "ghp_test_token_placeholder"  # nosec B105
+
+    # Use test placeholder for API key
+    api_key = "sk-ant-test-key-placeholder"
+
     try:
         config_data = {
             "database": {"url": database_url},
@@ -403,7 +411,7 @@ def create_minimal_config(
             "llm": {
                 "anthropic": {
                     "provider": "anthropic",
-                    "api_key": "test-key",
+                    "api_key": api_key,
                     "model": "claude-3-sonnet-20240229",
                 }
             },

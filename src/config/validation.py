@@ -364,7 +364,7 @@ class ConfigurationValidator:
         # Token validation
         if not repo.auth_token:
             self.validation_errors.append(f"{name} missing auth_token")
-        elif repo.auth_token == "test-token":
+        elif repo.auth_token == "test-token":  # nosec B105
             self.warnings.append(f"{name} using test auth_token")
 
         # Polling interval validation

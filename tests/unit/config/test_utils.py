@@ -646,7 +646,7 @@ class TestMinimalConfigCreation:
         assert config.queue.url == "redis://localhost:6379/0"
         assert len(config.repositories) == 1
         assert config.repositories[0].url == "https://github.com/example/repo"
-        assert config.repositories[0].auth_token == "test-token"
+        assert config.repositories[0].auth_token == "ghp_test_token_placeholder"
 
     def test_create_minimal_config_custom_parameters(self):
         """

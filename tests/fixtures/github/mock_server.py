@@ -49,7 +49,7 @@ class MockGitHubServer:
         """
 
         @self.app.route("/")
-        def root():
+        def root() -> Response:
             return jsonify(
                 {
                     "message": "GitHub API Mock Server",
@@ -135,7 +135,7 @@ class MockGitHubServer:
                 return jsonify({"total_count": 0, "check_runs": []})
 
         @self.app.errorhandler(404)
-        def not_found(error) -> Response:
+        def not_found(error: Any) -> tuple[Response, int]:
             """
             Why: Provide realistic 404 error responses matching GitHub API format.
             What: Handles 404 errors with GitHub-like error response.
@@ -292,7 +292,7 @@ class MockGitHubServer:
         self.app.run(host=host, port=port, debug=debug)
 
 
-def main():
+def main() -> int:
     """Main entry point for the mock server."""
     parser = argparse.ArgumentParser(description="Mock GitHub API Server")
     parser.add_argument(

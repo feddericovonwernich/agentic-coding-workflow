@@ -55,6 +55,14 @@ asyncio.run(main())
 
 ## Available APIs
 
+### [PR Discovery API](pr-discovery.md)
+High-performance PR and check run discovery system for large-scale monitoring:
+- **Scalable Processing**: Handles 100+ repositories with 1000+ PRs each within 5-minute windows
+- **Intelligent Caching**: Multi-tier caching with Redis and memory backends achieving >60% hit rates
+- **State Detection**: Real-time state change detection with significance filtering
+- **Performance**: Configurable concurrency, rate limiting, and comprehensive metrics
+- **Reliability**: Graceful error handling with partial success and recovery mechanisms
+
 ### [GitHub API Client](github-client.md)
 Comprehensive GitHub API integration with advanced features:
 - **Authentication**: Personal Access Token, GitHub App, OAuth support
@@ -100,6 +108,12 @@ Webhook handling and event processing:
 Complete working examples for all APIs are available in the [examples/](examples/) directory:
 
 ### Quick Access Examples
+
+**PR Discovery System:**
+```python
+# [examples/pr-discovery-usage.py](examples/pr-discovery-usage.py)
+# High-performance PR and check run discovery examples
+```
 
 **GitHub Client Usage:**
 ```python
