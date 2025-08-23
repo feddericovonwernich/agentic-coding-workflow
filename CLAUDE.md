@@ -17,7 +17,7 @@ An automated system for monitoring, analyzing, and fixing failed GitHub pull req
 
 ## Development Workflow with Specialized Agents
 
-**IMPORTANT**: Use these specialized agents for efficient development:
+**IMPORTANT**: Use specialized agents for efficient development:
 
 1. **Architecture Planning** (`architecture-planner` agent)
    - Use BEFORE implementing any new feature or significant refactoring
@@ -39,8 +39,8 @@ An automated system for monitoring, analyzing, and fixing failed GitHub pull req
        - `code-implementer` agent will have knowledge of coding best practices of the project, it should ONLY be used to write code.
      - **Test Writing** (`test-implementor` agent): Use this agent to create comprehensive tests for the code being implemented.
        - `test-implementor` agent will have knowledge of testing best practices of the project, it should ONLY be used to write tests.
-   - Both agents work independently from the same architectural plan
-   - Maximizes development efficiency through parallel execution
+   - Maximize development efficiency through parallel execution
+   - **CRITICAL**: Make sure to instruct these agents to read relevant files for the task given from the scratch pad.
 
 3. **Documentation** (`code-documentator` agent)
    - Use AFTER code and tests are complete.
@@ -51,3 +51,17 @@ An automated system for monitoring, analyzing, and fixing failed GitHub pull req
 4 - **Code Quality** (`Code Quality Enforcer` agent)
    - Use AFTER implementation and documentation are complete.
    - This agent will have knowledge of the project's code quality standards.
+
+5 - Commit and Push
+   - After all agents have completed their tasks, review the changes.
+   - Make sure that all tasks in `tasks.md` are marked as complete.
+   - **CRITICAL**: Run a final check to ensure everything is working as expected.
+     - Run all tests
+     - Run code quality tools
+     - If anything fails, categorize the issues, split into manageable tasks, and re-engage the appropriate agents to fix them.
+       - Engage agents in parallel work where possible to maximize efficiency.
+   - **IMPORTANT**: Once everything is verified: Clear scratch pad of all temporary files and notes.
+     - Make sure the plan we've followed is detailed in the PR description.
+   - Commit the changes with a clear message summarizing the work done.
+   - Push the changes to the appropriate branch in the repository.
+   - Create a Pull Request if necessary, following the project's PR guidelines.
