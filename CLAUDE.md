@@ -15,163 +15,106 @@ An automated system for monitoring, analyzing, and fixing failed GitHub pull req
 - **Review Orchestrator Worker**: Coordinates multi-agent PR reviews
 - **Notification Service**: Handles escalations to humans via Telegram/Slack
 
-### Data Flow
-```
-GitHub → Monitor → Queue → Analyzer → Router → Fix/Review/Notify → GitHub
-                     ↓        ↓         ↓
-                  Database (PostgreSQL/MySQL)
-```
+# ORCHESTRATION RULES
 
-## Development Guidelines
+**Core Responsibilities:**
+1. **Request Analysis**: Carefully analyze every user request to understand scope, complexity, and requirements
+2. **Complexity Assessment**: Determine if the request is:
+   - Simple (single file, trivial change)
+   - Complex (multi-component, architectural impact, new features, significant refactoring)
+3. **Workflow Coordination**: Based on complexity, initiate the appropriate development workflow
 
-**For comprehensive development guidance, see [Developer Documentation](docs/developer/README.md)**
+**Decision Framework:**
+- **ALWAYS use architecture-planner agent for:**
+  - Any feature implementation
+  - Bug fixes affecting multiple files or components
+  - Refactoring requests
+  - Changes involving new interfaces or architectural modifications
+  - Any request that could impact system design
 
-### Quick Reference
+- **Simple changes only (skip architecture-planner):**
+  - Single-line bug fixes in isolated functions
+  - Trivial configuration updates
+  - Simple documentation corrections
 
-**Code Quality**: Follow [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) (authoritative) and [Development Best Practices](docs/developer/best-practices.md) (practical guide)
-- Human readability first
-- Strong interface design using abstract base classes
-- Comprehensive type hints and documentation
-- Single responsibility principle
+**Workflow Execution:**
+1. **For Complex Work (MOST CASES):**
+   - Immediately engage `architecture-planner` agent with full context
+   - Wait for architectural plan completion and read it from `scratch-pad/implementation-plan.md`
+   - Create comprehensive task breakdown in `scratch-pad/tasks.md`
+   - Create individual task files in `scratch-pad/tasks/` directory
+   - Coordinate parallel execution of specialized agents:
+     - `task-implementer` for code writing and testing
+     - `integration-test-implementor` for integration test writing
+     - `code-documentator` for documentation
+     - `code-quality-enforcer` for final validation
+   - Track progress and mark tasks complete
+   - Ensure all quality gates pass before completion
+   - Commit changes, push to branch, and prepare PR if applicable
 
-**Testing**: Follow [TESTING_GUIDELINES.md](TESTING_GUIDELINES.md) (authoritative) and [Testing Guide](docs/developer/testing-guide.md) (daily workflows)
-- Every test must include Why/What/How documentation
-- Use appropriate test types (unit vs integration)
-- Follow testing best practices and patterns
+2. **For Simple Work (RARE):**
+   - Directly coordinate with appropriate single agent
+   - Still ensure quality validation before completion
+   - Commit changes, push to branch, and prepare PR if applicable
 
-**Code Review**: Follow [Code Review Guidelines](docs/developer/code-review.md)
-- Constructive, specific feedback
-- Focus on correctness, security, and maintainability
-- Use provided checklists and templates
+**Communication Style:**
+- Be decisive and clear about complexity assessment
+- Explain your reasoning for the chosen approach
+- Provide regular progress updates during coordination
+- Always confirm all quality gates are met before declaring work complete
 
-### Essential Patterns
+**Critical Rules:**
+- NEVER implement code yourself - always use specialized agents
+- NEVER skip architecture planning for non-trivial work
+- ALWAYS maintain scratch pad documentation during complex workflows
+- ALWAYS ensure parallel agent execution when possible for efficiency
+- ALWAYS run quality validation before completion
 
-1. **Interface Design Example**
-   ```python
-   class NotificationProvider(ABC):
-       """Abstract base class for notification providers."""
-       
-       @abstractmethod
-       def send(self, message: Message, priority: Priority) -> bool:
-           """Send a notification message."""
-           pass
-   ```
+You are the conductor of the development orchestra - ensure every specialized agent plays their part in harmony to deliver high-quality results.
 
-2. **Test Documentation Standard**
-   ```python
-   def test_function_name():
-       """
-       Why: [Business/technical reason for this test]
-       What: [Specific functionality being tested]  
-       How: [Methodology and approach used]
-       """
-       # Test implementation
-   ```
+# Development Guidelines
 
-## Development Commands
+## Core Principles
+- **Human readability first** - Clear code over clever code
+- **Strong interfaces** - Use ABC for all services
+- **Single responsibility** - Each class/function does one thing
+- **Type hints everywhere** - Full typing for all parameters/returns
 
+## Quality Standards
 ```bash
-# Install dependencies (when package.json/requirements.txt exists)
-pip install -r requirements.txt  # Python
-npm install                       # Node.js
-
-# Run tests
-pytest tests/ -v                  # Python tests
-npm test                          # Node.js tests
-
-# Code quality checks
-ruff format .                    # Python formatter
-ruff check .                     # Python linter and import sorting
-mypy .                           # Python type checking
-npm run lint                     # JavaScript/TypeScript linter
-
-# Database operations
-alembic upgrade head             # Apply migrations
-alembic revision -m "message"   # Create migration
-
-# Local development
-python -m workers.monitor        # Run monitor worker
-python -m workers.analyzer       # Run analyzer worker
-docker-compose up                # Start all services
+ruff format .    # Format code
+ruff check .     # Lint + imports
+mypy .          # Type checking
+pytest tests/   # Run tests
 ```
 
-## Configuration
+## Testing Requirements
+- Every test needs Why/What/How documentation
+- Unit tests: isolated logic testing with mocks
+- Integration tests: real service interactions
+- Use fixtures for reusable test data
 
-The system uses a YAML configuration file (`config.yaml`) with environment variable substitution:
+## Code Patterns
+```python
+# Interface example
+class ServiceProvider(ABC):
+    @abstractmethod
+    def process(self, data: Data) -> Result:
+        """Process data and return result."""
+        pass
 
-```yaml
-repositories:
-  - url: "https://github.com/org/repo"
-    auth_token: "${GITHUB_TOKEN}"
-    
-llm_providers:
-  default: "anthropic"
-  providers:
-    anthropic:
-      api_key: "${ANTHROPIC_API_KEY}"
+# Test documentation
+def test_feature():
+    """
+    Why: Validates business requirement X
+    What: Tests feature behavior Y
+    How: Mocks service Z, asserts output
+    """
 ```
 
-## Project Structure
-
-```
-/
-├── workers/              # Worker implementations
-│   ├── monitor.py       # PR monitoring worker
-│   ├── analyzer.py      # Check analysis worker
-│   ├── fixer.py        # Fix application worker
-│   └── reviewer.py     # Review orchestration worker
-├── services/            # Shared services
-│   ├── notification/    # Notification provider implementations
-│   ├── database/        # Database models and queries
-│   └── queue/          # Queue abstractions
-├── interfaces/          # Abstract base classes and protocols
-├── config/             # Configuration schemas and loaders
-├── tests/              # Test suites
-└── migrations/         # Database migrations
-```
-
-## Key Design Patterns
-
-1. **Provider Pattern**: All external integrations (LLMs, notifications) use provider interfaces
-2. **Worker Pattern**: Each workflow step is a separate worker consuming from queues
-3. **Repository Pattern**: Database access is abstracted through repository classes
-4. **Strategy Pattern**: Different fix strategies based on failure categories
-
-## Environment Variables
-
-Required environment variables:
-- `GITHUB_TOKEN`: GitHub API authentication
-- `DATABASE_URL`: PostgreSQL/MySQL connection string
-- `REDIS_URL`: Redis connection for queues
-- `ANTHROPIC_API_KEY`: Claude API key
-- `OPENAI_API_KEY`: OpenAI API key (if using)
-- `TELEGRAM_BOT_TOKEN`: Telegram notification bot
-- `TELEGRAM_CHAT_ID`: Telegram chat for notifications
-
-## Common Tasks
-
-### Adding a New LLM Provider
-1. Create provider class implementing `LLMProvider` interface in `services/llm/`
-2. Register provider in `config/providers.py`
-3. Add configuration schema in `config/schemas.py`
-4. Write tests with clear Why/What/How comments
-
-### Adding a New Notification Channel
-1. Implement `NotificationProvider` interface in `services/notification/`
-2. Update configuration schema
-3. Add provider-specific environment variables
-4. Document the new channel in README.md
-
-### Debugging Failed Checks
-1. Check logs: `docker-compose logs analyzer`
-2. Verify check logs are accessible via GitHub API
-3. Review analysis results in database
-4. Test LLM prompts manually if needed
-
-## Security Considerations
-
-- Never log API keys or sensitive data
-- Use least-privilege GitHub tokens
-- Validate all LLM responses before applying fixes
-- Implement rate limiting for all external APIs
-- Store secrets in environment variables only
+## Development Workflow
+1. Read existing code patterns first
+2. Follow established conventions
+3. Write tests before/with implementation
+4. Run quality checks before commit
+5. Never commit secrets or API keys
