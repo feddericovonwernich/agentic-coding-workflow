@@ -111,8 +111,7 @@ async def setup_database_schema(database_session):
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             url VARCHAR(512) NOT NULL UNIQUE,
             name VARCHAR(255) NOT NULL,
-            owner VARCHAR(255),
-            repo_name VARCHAR(255),
+            full_name VARCHAR(300),
             status VARCHAR(20) DEFAULT 'active',
             last_polled_at TIMESTAMP WITH TIME ZONE,
             failure_count INTEGER DEFAULT 0,
@@ -229,9 +228,11 @@ def mock_github_client():
     async def mock_paginate(*args, **kwargs):
         # Return sample PR data for pagination
         if "/pulls" in args[0]:
-            yield from _get_sample_github_prs()
+            for item in _get_sample_github_prs():
+                yield item
         elif "/check-runs" in args[0]:
-            yield from _get_sample_github_check_runs()
+            for item in _get_sample_github_check_runs():
+                yield item
     
     mock.paginate = mock_paginate
     return mock
@@ -248,8 +249,7 @@ def test_repository() -> RepoModel:
     repo.id = uuid.uuid4()
     repo.url = "https://github.com/test-org/test-repo"
     repo.name = "test-repo"
-    repo.owner = "test-org"
-    repo.repo_name = "test-repo"
+    repo.full_name = "test-org/test-repo"
     repo.status = RepositoryStatus.ACTIVE
     repo.failure_count = 0
     return repo
@@ -267,16 +267,15 @@ async def test_repository_in_db(
     await database_session.execute(
         text("""
         INSERT INTO repositories 
-        (id, url, name, owner, repo_name, status, failure_count, created_at, updated_at)
-        VALUES (:id, :url, :name, :owner, :repo_name, :status, :failure_count, 
+        (id, url, name, full_name, status, failure_count, created_at, updated_at)
+        VALUES (:id, :url, :name, :full_name, :status, :failure_count, 
                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         """),
         {
             "id": test_repository.id,
             "url": test_repository.url,
             "name": test_repository.name,
-            "owner": test_repository.owner,
-            "repo_name": test_repository.repo_name,
+            "full_name": test_repository.full_name,
             "status": test_repository.status.value,
             "failure_count": test_repository.failure_count,
         },

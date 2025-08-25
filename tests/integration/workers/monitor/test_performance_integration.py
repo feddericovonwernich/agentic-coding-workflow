@@ -13,10 +13,12 @@ from typing import List
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy import text
 
 from src.models.repository import Repository
 from src.repositories.check_run import CheckRunRepository
 from src.repositories.pull_request import PullRequestRepository
+from src.repositories.pr_state_history import PRStateHistoryRepository
 from src.workers.monitor.change_detection import DatabaseChangeDetector
 from src.workers.monitor.discovery import GitHubPRDiscoveryService
 from src.workers.monitor.models import ChangeSet, CheckRunData, PRData
@@ -49,23 +51,21 @@ class TestPRMonitoringPerformance:
         repo.id = uuid.uuid4()
         repo.url = "https://github.com/perf-test/large-repo"
         repo.name = "large-repo"
-        repo.owner = "perf-test"
-        repo.repo_name = "large-repo"
+        repo.full_name = "perf-test/large-repo"
         
         await database_session.execute(
             text("""
             INSERT INTO repositories 
-            (id, url, name, owner, repo_name, status, failure_count,
+            (id, url, name, full_name, status, failure_count,
              created_at, updated_at)
-            VALUES (:id, :url, :name, :owner, :repo_name, 'active', 0,
+            VALUES (:id, :url, :name, :full_name, 'active', 0,
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             """),
             {
                 "id": repo.id,
                 "url": repo.url,
                 "name": repo.name,
-                "owner": repo.owner,
-                "repo_name": repo.repo_name,
+                "full_name": repo.full_name,
             },
         )
         await database_session.commit()
@@ -167,25 +167,23 @@ class TestPRMonitoringPerformance:
             repo.id = uuid.uuid4()
             repo.url = f"https://github.com/concurrent-test/repo-{i:02d}"
             repo.name = f"concurrent-repo-{i:02d}"
-            repo.owner = "concurrent-test"
-            repo.repo_name = f"repo-{i:02d}"
+            repo.full_name = f"concurrent-test/repo-{i:02d}"
             repositories.append(repo)
             
             # Insert into database
             await database_session.execute(
                 text("""
                 INSERT INTO repositories 
-                (id, url, name, owner, repo_name, status, failure_count,
+                (id, url, name, full_name, status, failure_count,
                  created_at, updated_at)
-                VALUES (:id, :url, :name, :owner, :repo_name, 'active', 0,
+                VALUES (:id, :url, :name, :full_name, 'active', 0,
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """),
                 {
                     "id": repo.id,
                     "url": repo.url,
                     "name": repo.name,
-                    "owner": repo.owner,
-                    "repo_name": repo.repo_name,
+                    "full_name": repo.full_name,
                 },
             )
         await database_session.commit()
@@ -881,5 +879,3 @@ class TestConcurrentProcessingScenarios:
         print(f"  Memory per PR: {memory_increase / len(cleanup_prs):.3f} MB")
 
 
-# Import text from sqlalchemy for SQL queries
-from sqlalchemy import text

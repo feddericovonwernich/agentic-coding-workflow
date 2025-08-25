@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy import text
 
 from src.models.repository import Repository
 from src.repositories.check_run import CheckRunRepository
@@ -142,25 +143,23 @@ class TestPRProcessorIntegration:
             repo.id = uuid.uuid4()
             repo.url = f"https://github.com/test-org/test-repo-{i}"
             repo.name = f"test-repo-{i}"
-            repo.owner = "test-org"
-            repo.repo_name = f"test-repo-{i}"
+            repo.full_name = f"test-org/test-repo-{i}"
             repositories.append(repo)
             
             # Insert into database
             await database_session.execute(
                 text("""
                 INSERT INTO repositories 
-                (id, url, name, owner, repo_name, status, failure_count, 
+                (id, url, name, full_name, status, failure_count, 
                  created_at, updated_at)
-                VALUES (:id, :url, :name, :owner, :repo_name, 'active', 0,
+                VALUES (:id, :url, :name, :full_name, 'active', 0,
                         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                 """),
                 {
                     "id": repo.id,
                     "url": repo.url,
                     "name": repo.name,
-                    "owner": repo.owner,
-                    "repo_name": repo.repo_name,
+                    "full_name": repo.full_name,
                 },
             )
         await database_session.commit()
@@ -433,9 +432,9 @@ class TestPRProcessorPerformance:
         await database_session.execute(
             text("""
             INSERT INTO repositories 
-            (id, url, name, owner, repo_name, status, failure_count,
+            (id, url, name, full_name, status, failure_count,
              created_at, updated_at)
-            VALUES (:id, :url, :name, 'test-org', 'large-repo', 'active', 0,
+            VALUES (:id, :url, :name, 'test-org/large-repo', 'active', 0,
                     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             """),
             {"id": repo.id, "url": repo.url, "name": repo.name},

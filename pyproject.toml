@@ -102,6 +102,7 @@ markers = [
     "unit: Unit tests with mocked dependencies",
     "integration: Integration tests with actual PostgreSQL database using testcontainers",
     "slow: Tests that take a long time to run",
+    "performance: Performance and scalability tests",
 ]
 asyncio_mode = "auto"
 
