@@ -39,7 +39,7 @@ class TestProcessorConfig:
     def test_default_config_creation(self):
         """Test creation with default values."""
         config = ProcessorConfig()
-        
+
         assert config.max_concurrent_repos == 10
         assert config.max_concurrent_api_calls == 50
         assert config.batch_size == 25
@@ -55,7 +55,7 @@ class TestProcessorConfig:
             enable_dry_run=True,
             memory_limit_mb=4096,
         )
-        
+
         assert config.max_concurrent_repos == 20
         assert config.batch_size == 50
         assert config.enable_dry_run is True
@@ -70,14 +70,14 @@ class TestProcessorConfig:
             incremental_window_hours=12,
             memory_limit_mb=1024,
         )
-        
+
         # Should not raise
         config.validate()
 
     def test_config_validation_negative_concurrent_repos(self):
         """Test validation failure for negative concurrent repos."""
         config = ProcessorConfig(max_concurrent_repos=0)
-        
+
         with pytest.raises(ValueError, match="max_concurrent_repos must be positive"):
             config.validate()
 
@@ -87,7 +87,7 @@ class TestProcessorConfig:
             max_concurrent_repos=20,
             max_concurrent_api_calls=10,
         )
-        
+
         with pytest.raises(
             ValueError, match="max_concurrent_api_calls must be >= max_concurrent_repos"
         ):
@@ -99,7 +99,7 @@ class TestProcessorConfig:
         config = ProcessorConfig(batch_size=0)
         with pytest.raises(ValueError, match="batch_size must be between 1 and 1000"):
             config.validate()
-        
+
         # Too large
         config = ProcessorConfig(batch_size=2000)
         with pytest.raises(ValueError, match="batch_size must be between 1 and 1000"):
@@ -108,14 +108,16 @@ class TestProcessorConfig:
     def test_config_validation_invalid_incremental_window(self):
         """Test validation failure for invalid incremental window."""
         config = ProcessorConfig(incremental_window_hours=0)
-        
-        with pytest.raises(ValueError, match="incremental_window_hours must be positive"):
+
+        with pytest.raises(
+            ValueError, match="incremental_window_hours must be positive"
+        ):
             config.validate()
 
     def test_config_validation_insufficient_memory(self):
         """Test validation failure for insufficient memory limit."""
         config = ProcessorConfig(memory_limit_mb=128)
-        
+
         with pytest.raises(ValueError, match="memory_limit_mb must be at least 256MB"):
             config.validate()
 
@@ -126,7 +128,7 @@ class TestProcessingSession:
     def test_session_creation(self):
         """Test session creation with defaults."""
         session = ProcessingSession()
-        
+
         assert session.session_id is not None
         assert session.mode == ProcessingMode.INCREMENTAL
         assert session.phase == ProcessingPhase.INITIALIZATION
@@ -137,17 +139,17 @@ class TestProcessingSession:
     def test_session_with_custom_mode(self):
         """Test session creation with custom mode."""
         session = ProcessingSession(mode=ProcessingMode.DRY_RUN)
-        
+
         assert session.mode == ProcessingMode.DRY_RUN
 
     def test_duration_calculation(self):
         """Test duration calculation."""
         session = ProcessingSession()
-        
+
         # Before completion
         duration = session.duration_seconds
         assert duration > 0
-        
+
         # After completion
         session.completed_at = session.started_at + timedelta(seconds=30)
         assert session.duration_seconds == 30.0
@@ -155,10 +157,10 @@ class TestProcessingSession:
     def test_success_rate_calculation(self):
         """Test success rate calculation."""
         session = ProcessingSession()
-        
+
         # No repositories
         assert session.success_rate == 100.0
-        
+
         # Some processing results
         session.total_repositories = 10
         session.processed_repositories = 8
@@ -167,20 +169,20 @@ class TestProcessingSession:
     def test_completion_status(self):
         """Test completion status checking."""
         session = ProcessingSession()
-        
+
         assert not session.is_completed
-        
+
         session.update_phase(ProcessingPhase.COMPLETED)
         assert session.is_completed
         assert session.completed_at is not None
-        
+
         session.update_phase(ProcessingPhase.FAILED)
         assert session.is_completed
 
     def test_error_tracking(self):
         """Test error addition and tracking."""
         session = ProcessingSession()
-        
+
         session.add_error("Test error message")
         assert len(session.errors) == 1
         assert "Test error message" in session.errors[0]
@@ -188,7 +190,7 @@ class TestProcessingSession:
     def test_warning_tracking(self):
         """Test warning addition and tracking."""
         session = ProcessingSession()
-        
+
         session.add_warning("Test warning message")
         assert len(session.warnings) == 1
         assert "Test warning message" in session.warnings[0]
@@ -208,7 +210,7 @@ class TestRepositoryProcessingResult:
             prs_discovered=5,
             check_runs_discovered=12,
         )
-        
+
         assert result.repository_id == repo_id
         assert result.repository_name == "test-org/test-repo"
         assert result.success is True
@@ -227,7 +229,7 @@ class TestRepositoryProcessingResult:
             check_runs_discovered=8,
             state_changes_detected=2,
         )
-        
+
         str_repr = str(result)
         assert "test-repo" in str_repr
         assert "SUCCESS" in str_repr
@@ -266,7 +268,9 @@ class TestPRProcessor:
         )
 
     @pytest.fixture
-    async def processor(self, mock_github_client, mock_session, mock_cache_manager, processor_config):
+    async def processor(
+        self, mock_github_client, mock_session, mock_cache_manager, processor_config
+    ):
         """PRProcessor instance for testing."""
         processor = PRProcessor(
             github_client=mock_github_client,
@@ -274,23 +278,25 @@ class TestPRProcessor:
             cache_manager=mock_cache_manager,
             config=processor_config,
         )
-        
+
         # Mock the repository repository
         processor.repo_repository = AsyncMock()
-        
+
         return processor
 
-    def test_processor_initialization(self, mock_github_client, mock_session, mock_cache_manager):
+    def test_processor_initialization(
+        self, mock_github_client, mock_session, mock_cache_manager
+    ):
         """Test processor initialization."""
         config = ProcessorConfig(max_concurrent_repos=5)
-        
+
         processor = PRProcessor(
             github_client=mock_github_client,
             session=mock_session,
             cache_manager=mock_cache_manager,
             config=config,
         )
-        
+
         assert processor.github_client == mock_github_client
         assert processor.session == mock_session
         assert processor.cache_manager == mock_cache_manager
@@ -298,14 +304,16 @@ class TestPRProcessor:
         assert processor._current_session is None
         assert not processor._shutdown_requested
 
-    def test_processor_initialization_default_config(self, mock_github_client, mock_session, mock_cache_manager):
+    def test_processor_initialization_default_config(
+        self, mock_github_client, mock_session, mock_cache_manager
+    ):
         """Test processor initialization with default config."""
         processor = PRProcessor(
             github_client=mock_github_client,
             session=mock_session,
             cache_manager=mock_cache_manager,
         )
-        
+
         assert isinstance(processor.config, ProcessorConfig)
         assert processor.config.max_concurrent_repos == 10
 
@@ -314,7 +322,7 @@ class TestPRProcessor:
         """Test async context manager functionality."""
         async with processor as ctx_processor:
             assert ctx_processor is processor
-        
+
         # Should request shutdown after exit
         assert processor._shutdown_requested
 
@@ -322,7 +330,7 @@ class TestPRProcessor:
     async def test_process_single_repository_success(self, processor):
         """Test successful single repository processing."""
         repo_id = uuid.uuid4()
-        
+
         # Mock repository lookup
         mock_repo = Mock()
         mock_repo.full_name = "test-org/test-repo"
@@ -354,7 +362,7 @@ class TestPRProcessor:
                 url="https://github.com/test-org/test-repo/pull/1",
             )
         ]
-        
+
         mock_checks = [
             CheckRunDiscovery(
                 pr_id=repo_id,
@@ -365,7 +373,7 @@ class TestPRProcessor:
                 conclusion=CheckConclusion.SUCCESS,
             )
         ]
-        
+
         mock_metrics = ProcessingMetrics(
             github_api_calls_made=5,
             prs_discovered=1,
@@ -407,7 +415,7 @@ class TestPRProcessor:
     async def test_process_single_repository_dry_run(self, processor):
         """Test single repository processing in dry-run mode."""
         repo_id = uuid.uuid4()
-        
+
         # Mock repository
         mock_repo = Mock()
         mock_repo.full_name = "test-org/test-repo"
@@ -437,7 +445,7 @@ class TestPRProcessor:
     async def test_process_single_repository_error_handling(self, processor):
         """Test error handling in single repository processing."""
         repo_id = uuid.uuid4()
-        
+
         # Mock repository
         mock_repo = Mock()
         mock_repo.full_name = "test-org/test-repo"
@@ -518,7 +526,7 @@ class TestPRProcessor:
     async def test_coordinate_change_detection(self, processor):
         """Test change detection coordination."""
         processor.state_detector = AsyncMock()
-        
+
         # Mock discovered data
         mock_prs = [Mock()]
         mock_checks = [Mock(pr_number=1)]
@@ -533,7 +541,9 @@ class TestPRProcessor:
         processor.state_detector.detect_pr_changes.return_value = pr_changes
         processor.state_detector.detect_check_run_changes.return_value = check_changes
         processor.state_detector.analyze_significance.return_value = analyzed_changes
-        processor.state_detector.filter_actionable_changes.return_value = actionable_changes
+        processor.state_detector.filter_actionable_changes.return_value = (
+            actionable_changes
+        )
 
         # Execute
         changes = await processor._coordinate_change_detection(
@@ -572,16 +582,16 @@ class TestPRProcessor:
     async def test_request_shutdown(self, processor):
         """Test graceful shutdown request."""
         assert not processor._shutdown_requested
-        
+
         await processor.request_shutdown()
-        
+
         assert processor._shutdown_requested
 
     @pytest.mark.asyncio
     async def test_get_processing_status_idle(self, processor):
         """Test getting status when processor is idle."""
         status = await processor.get_processing_status()
-        
+
         assert status["status"] == "idle"
         assert status["last_session"] is None
 
@@ -611,13 +621,13 @@ class TestPRProcessor:
         """Test repository initialization with specific IDs."""
         session = ProcessingSession()
         repo_id = uuid.uuid4()
-        
+
         # Mock repository
         mock_repo = Mock()
         mock_repo.id = repo_id
         mock_repo.full_name = "test-org/test-repo"
         mock_repo.last_polled_at = None
-        
+
         processor.repo_repository.get_by_id.return_value = mock_repo
 
         # Execute
@@ -626,7 +636,7 @@ class TestPRProcessor:
         # Assertions
         assert session.total_repositories == 1
         assert len(processor._repository_contexts) == 1
-        
+
         context = processor._repository_contexts[0]
         assert context.repository_id == repo_id
         assert context.repository_owner == "test-org"
@@ -637,7 +647,7 @@ class TestPRProcessor:
         """Test repository initialization with missing repository."""
         session = ProcessingSession()
         repo_id = uuid.uuid4()
-        
+
         processor.repo_repository.get_by_id.return_value = None
 
         # Execute
@@ -653,13 +663,13 @@ class TestPRProcessor:
     async def test_phase_initialize_repositories_active_mode(self, processor):
         """Test repository initialization in active mode."""
         session = ProcessingSession(mode=ProcessingMode.FULL)
-        
+
         # Mock active repositories
         mock_repos = [
             Mock(id=uuid.uuid4(), full_name="org1/repo1", last_polled_at=None),
             Mock(id=uuid.uuid4(), full_name="org2/repo2", last_polled_at=None),
         ]
-        
+
         processor.repo_repository.get_active_repositories.return_value = mock_repos
 
         # Execute with no specific repository IDs (all active)
@@ -702,12 +712,12 @@ class TestPRProcessor:
             assert session.memory_usage_mb == 512.0
             assert session.cpu_usage_percent == 25.5
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_cleanup_session(self, processor):
         """Test session cleanup."""
         session = ProcessingSession()
         processor._current_session = session
-        
+
         # Mock cleanup methods
         processor.pr_discovery = AsyncMock()
         processor.check_discovery = AsyncMock()
@@ -725,7 +735,7 @@ class TestPRProcessor:
         """Test resource monitoring."""
         session = ProcessingSession()
         processor._current_session = session
-        
+
         with patch("src.workers.monitor.processor.psutil") as mock_psutil:
             mock_process = Mock()
             mock_memory = Mock(rss=1024 * 1024 * 100)  # 100MB
@@ -735,13 +745,13 @@ class TestPRProcessor:
 
             # Start monitoring task
             monitor_task = asyncio.create_task(processor._monitor_resources())
-            
+
             # Let it run briefly
             await asyncio.sleep(0.01)  # Shorter sleep
-            
+
             # Request shutdown to stop monitoring
             processor._shutdown_requested = True
-            
+
             # Wait for completion with timeout handling
             try:
                 await asyncio.wait_for(monitor_task, timeout=0.5)
@@ -761,7 +771,7 @@ class TestPRProcessor:
         session = ProcessingSession()
         processor._current_session = session
         processor.config.memory_limit_mb = 500  # 500MB limit
-        
+
         with patch("src.workers.monitor.processor.psutil") as mock_psutil:
             mock_process = Mock()
             mock_memory = Mock(rss=1024 * 1024 * 600)  # 600MB usage
@@ -770,7 +780,7 @@ class TestPRProcessor:
 
             # Start monitoring
             monitor_task = asyncio.create_task(processor._monitor_resources())
-            
+
             # Brief execution
             await asyncio.sleep(0.1)
             processor._shutdown_requested = True
@@ -799,7 +809,7 @@ class TestPRProcessorIntegration:
         )
 
         processor = PRProcessor(github_client, session, cache_manager, config)
-        
+
         # Mock all components
         processor.repo_repository = AsyncMock()
         processor.pr_discovery = AsyncMock()
@@ -816,21 +826,29 @@ class TestPRProcessorIntegration:
         repo1.id = uuid.uuid4()
         repo1.full_name = "org/repo1"
         repo1.last_polled_at = None
-        
+
         repo2 = Mock()
         repo2.id = uuid.uuid4()
         repo2.full_name = "org/repo2"
         repo2.last_polled_at = None
 
-        full_processor.repo_repository.get_active_repositories.return_value = [repo1, repo2]
-        full_processor.repo_repository.get_repositories_needing_poll.return_value = [repo1, repo2]
-        full_processor.repo_repository.get_by_id.side_effect = lambda id: repo1 if id == repo1.id else repo2
+        full_processor.repo_repository.get_active_repositories.return_value = [
+            repo1,
+            repo2,
+        ]
+        full_processor.repo_repository.get_repositories_needing_poll.return_value = [
+            repo1,
+            repo2,
+        ]
+        full_processor.repo_repository.get_by_id.side_effect = (
+            lambda id: repo1 if id == repo1.id else repo2
+        )
 
         # Mock discovery results
         mock_prs = [Mock(pr_number=1, head_sha="abc123", repository_id=repo1.id)]
         mock_checks = [Mock(pr_number=1)]
         mock_metrics = ProcessingMetrics(prs_discovered=1, github_api_calls_made=2)
-        
+
         full_processor.pr_discovery.discover_prs.return_value = (mock_prs, mock_metrics)
         full_processor.check_discovery.discover_check_runs.return_value = mock_checks
         full_processor.check_discovery.get_metrics.return_value = ProcessingMetrics()
@@ -846,7 +864,9 @@ class TestPRProcessorIntegration:
         full_processor.data_synchronizer.synchronize_changes.return_value = mock_sync_op
 
         # Execute processing
-        session = await full_processor.process_repositories(mode=ProcessingMode.INCREMENTAL)
+        session = await full_processor.process_repositories(
+            mode=ProcessingMode.INCREMENTAL
+        )
 
         # Assertions
         assert session.phase in (ProcessingPhase.COMPLETED, ProcessingPhase.CLEANUP)
@@ -861,14 +881,20 @@ class TestPRProcessorIntegration:
         repo1 = Mock()
         repo1.id = uuid.uuid4()
         repo1.full_name = "org/repo1"
-        
+
         repo2 = Mock()
         repo2.id = uuid.uuid4()
         repo2.full_name = "org/repo2"
 
-        full_processor.repo_repository.get_active_repositories.return_value = [repo1, repo2]
-        full_processor.repo_repository.get_repositories_needing_poll.return_value = [repo1, repo2]
-        
+        full_processor.repo_repository.get_active_repositories.return_value = [
+            repo1,
+            repo2,
+        ]
+        full_processor.repo_repository.get_repositories_needing_poll.return_value = [
+            repo1,
+            repo2,
+        ]
+
         # First repository succeeds
         def get_by_id_side_effect(repo_id):
             if repo_id == repo1.id:
@@ -876,12 +902,12 @@ class TestPRProcessorIntegration:
             elif repo_id == repo2.id:
                 return repo2
             return None
-            
+
         full_processor.repo_repository.get_by_id.side_effect = get_by_id_side_effect
 
         # Mock discovery - repo1 succeeds, repo2 fails
         def discover_side_effect(*args, **kwargs):
-            repo_contexts = args[0] if args else kwargs.get('repositories', [])
+            repo_contexts = args[0] if args else kwargs.get("repositories", [])
             if repo_contexts and repo_contexts[0].repository_id == repo1.id:
                 return ([], ProcessingMetrics())
             else:
@@ -904,7 +930,7 @@ class TestPRProcessorIntegration:
         # Assertions
         assert session.phase in (ProcessingPhase.COMPLETED, ProcessingPhase.CLEANUP)
         assert session.processed_repositories == 1  # Only repo1 succeeded
-        assert session.failed_repositories == 1     # repo2 failed
+        assert session.failed_repositories == 1  # repo2 failed
         assert session.total_repositories == 2
         assert session.success_rate == 50.0
         assert len(session.errors) > 0
@@ -919,7 +945,10 @@ class TestPRProcessorIntegration:
         full_processor.repo_repository.get_by_id.return_value = repo
 
         # Mock discovery
-        full_processor.pr_discovery.discover_prs.return_value = ([], ProcessingMetrics())
+        full_processor.pr_discovery.discover_prs.return_value = (
+            [],
+            ProcessingMetrics(),
+        )
         full_processor.check_discovery.discover_check_runs.return_value = []
         full_processor.check_discovery.get_metrics.return_value = ProcessingMetrics()
         full_processor.state_detector.detect_pr_changes.return_value = []
@@ -933,7 +962,7 @@ class TestPRProcessorIntegration:
         # Assertions
         assert session.mode == ProcessingMode.DRY_RUN
         assert session.phase in (ProcessingPhase.COMPLETED, ProcessingPhase.CLEANUP)
-        
+
         # Synchronization should not be called in dry-run mode
         full_processor.data_synchronizer.synchronize_changes.assert_not_called()
 
@@ -942,13 +971,13 @@ class TestPRProcessorIntegration:
         # Setup repositories
         repos = [Mock(id=uuid.uuid4(), full_name=f"org/repo{i}") for i in range(10)]
         full_processor.repo_repository.get_active_repositories.return_value = repos
-        
+
         def get_by_id_side_effect(repo_id):
             for repo in repos:
                 if repo.id == repo_id:
                     return repo
             return None
-            
+
         full_processor.repo_repository.get_by_id.side_effect = get_by_id_side_effect
 
         # Mock discovery with delay to simulate processing time
@@ -980,6 +1009,10 @@ class TestPRProcessorIntegration:
         session = await processing_task
 
         # Should complete with partial results
-        assert session.phase in (ProcessingPhase.COMPLETED, ProcessingPhase.CLEANUP, ProcessingPhase.FAILED)
+        assert session.phase in (
+            ProcessingPhase.COMPLETED,
+            ProcessingPhase.CLEANUP,
+            ProcessingPhase.FAILED,
+        )
         assert len(session.warnings) > 0
         assert any("shutdown request" in warning for warning in session.warnings)
