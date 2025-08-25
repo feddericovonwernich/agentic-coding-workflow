@@ -126,19 +126,61 @@ mypy src/
 ```
 agentic-coding-workflow/
 ├── src/
+│   ├── cache/              # Cache infrastructure
+│   │   ├── cache_manager.py # Cache management and strategies
+│   │   ├── memory_cache.py # In-memory cache implementation
+│   │   └── redis_cache.py  # Redis cache implementation
+│   ├── config/             # Configuration management
+│   │   ├── loader.py       # Configuration loading and validation
+│   │   ├── manager.py      # Configuration management
+│   │   └── models.py       # Configuration data models
 │   ├── database/           # Database infrastructure
-│   │   ├── config.py       # Configuration management
+│   │   ├── config.py       # Database configuration
 │   │   ├── connection.py   # Connection and session management
-│   │   └── health.py       # Health monitoring
-│   ├── models/             # SQLAlchemy models (future)
-│   ├── workers/            # Worker implementations (future)
-│   └── services/           # Shared services (future)
+│   │   ├── health.py       # Database health monitoring
+│   │   └── transactions.py # Transaction management
+│   ├── github/             # GitHub API integration
+│   │   ├── client.py       # GitHub API client
+│   │   ├── auth.py         # Authentication handling
+│   │   ├── pagination.py   # Pagination support
+│   │   └── rate_limiting.py# Rate limiting implementation
+│   ├── models/             # SQLAlchemy data models
+│   │   ├── base.py         # Base model classes
+│   │   ├── pull_request.py # Pull request models
+│   │   ├── check_run.py    # Check run models
+│   │   ├── repository.py   # Repository models
+│   │   └── enums.py        # Enumeration types
+│   ├── repositories/       # Repository pattern implementation
+│   │   ├── base.py         # Base repository class
+│   │   ├── pull_request.py # PR repository operations
+│   │   └── check_run.py    # Check run repository operations
+│   ├── workers/            # Worker implementations
+│   │   └── monitor/        # PR Monitor Worker (Issue #48)
+│   │       ├── models.py   # Data models and interfaces
+│   │       ├── discovery.py# PR and check run discovery engines
+│   │       ├── change_detection.py # State change detection
+│   │       ├── synchronization.py  # Database synchronization
+│   │       └── processor.py# Main orchestration processor
+│   └── performance/        # Performance optimization
+│       ├── monitoring.py   # Performance monitoring
+│       └── optimizations.py# Query and connection optimizations
 ├── tests/
 │   ├── unit/              # Unit tests with mocks
+│   │   ├── workers/       # Worker unit tests
+│   │   │   └── monitor/   # Monitor worker tests
+│   │   ├── config/        # Configuration tests
+│   │   ├── database/      # Database tests
+│   │   └── github/        # GitHub integration tests
 │   ├── integration/       # Integration tests
-│   └── conftest.py        # Test fixtures
+│   │   ├── github/        # GitHub API integration tests
+│   │   └── test_database_real_integration.py
+│   └── conftest.py        # Test fixtures and configuration
 ├── alembic/               # Database migrations
-├── docs/                  # Documentation
+├── docs/                  # Comprehensive documentation
+│   ├── api/               # API documentation
+│   ├── developer/         # Developer guides
+│   ├── user-guide/        # User documentation
+│   └── getting-started/   # Installation and setup guides
 └── docker-compose.yml     # Local development services
 ```
 

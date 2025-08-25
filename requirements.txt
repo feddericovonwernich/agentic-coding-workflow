@@ -21,7 +21,7 @@ pytest-mock>=3.12.0
 pytest-cov>=4.0.0
 pytest-timeout>=2.1.0
 testcontainers[postgres]>=3.7.0
-aioresponses>=0.7.0  # For mocking aiohttp responses
+aioresponses>=0.7.6  # For mocking aiohttp responses
 
 # Development tools
 mypy>=1.7.0
@@ -33,3 +33,4 @@ redis[hiredis]>=4.5.0  # Optional: for Redis-based caching
 
 # Logging and monitoring
 structlog>=23.0.0
+psutil>=5.9.0  # For resource monitoring
