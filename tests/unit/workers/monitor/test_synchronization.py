@@ -1,8 +1,8 @@
 """Comprehensive unit tests for the DataSynchronizer class."""
 
 import uuid
-from datetime import datetime, timezone
-from typing import List, Optional, Any
+from datetime import UTC, datetime, timezone
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -84,8 +84,8 @@ def sample_check_run_discovery(sample_pr_id):
         status=CheckStatus.COMPLETED,
         conclusion=CheckConclusion.SUCCESS,
         details_url="https://github.com/test/details",
-        started_at=datetime.now(timezone.utc),
-        completed_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
+        completed_at=datetime.now(UTC),
     )
 
 

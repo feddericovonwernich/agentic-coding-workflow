@@ -10,11 +10,12 @@ Tests cover all change detection scenarios including:
 
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 
+from src.models.enums import CheckConclusion, CheckStatus, PRState
 from src.workers.monitor.change_detection import StateChangeDetector
 from src.workers.monitor.models import (
     ChangeType,
@@ -23,7 +24,6 @@ from src.workers.monitor.models import (
     SeverityLevel,
     StateChangeEvent,
 )
-from src.models.enums import CheckConclusion, CheckStatus, PRState
 
 
 class TestStateChangeDetector:

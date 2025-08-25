@@ -583,11 +583,11 @@ class TestPRDiscoveryEngine:
 
     async def test_is_pr_too_old(self, discovery_engine):
         """Test PR age checking."""
-        from datetime import timezone
+        from datetime import UTC, timezone
 
         # Recent PR
         recent_pr = {
-            "updated_at": (datetime.now(timezone.utc) - timedelta(days=1))
+            "updated_at": (datetime.now(UTC) - timedelta(days=1))
             .isoformat()
             .replace("+00:00", "Z")
         }
@@ -595,7 +595,7 @@ class TestPRDiscoveryEngine:
 
         # Old PR
         old_pr = {
-            "updated_at": (datetime.now(timezone.utc) - timedelta(days=31))
+            "updated_at": (datetime.now(UTC) - timedelta(days=31))
             .isoformat()
             .replace("+00:00", "Z")
         }

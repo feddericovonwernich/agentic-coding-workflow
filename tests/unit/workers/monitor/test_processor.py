@@ -6,6 +6,7 @@ performance monitoring, and resource management.
 """
 
 import asyncio
+import contextlib
 import uuid
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -24,11 +25,11 @@ from src.workers.monitor.models import (
     SyncOperation,
 )
 from src.workers.monitor.processor import (
-    PRProcessor,
     ProcessingMode,
     ProcessingPhase,
     ProcessingSession,
     ProcessorConfig,
+    PRProcessor,
     RepositoryProcessingResult,
 )
 
@@ -755,12 +756,10 @@ class TestPRProcessor:
             # Wait for completion with timeout handling
             try:
                 await asyncio.wait_for(monitor_task, timeout=0.5)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 monitor_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await monitor_task
-                except asyncio.CancelledError:
-                    pass
 
             # Check that metrics were updated (may not be if monitoring ran too briefly)
             assert session.memory_usage_mb >= 0  # Just check it's been set
