@@ -79,6 +79,14 @@ Database models and repository patterns for data persistence:
 - **Performance**: Connection pooling, query optimization, and monitoring
 - **Migrations**: Database schema management and version control
 
+### [PR Monitoring API](pr-monitoring-api.md)
+Comprehensive PR monitoring system with three-phase processing pipeline:
+- **Discovery Service**: GitHub API integration with caching and rate limiting
+- **Change Detection**: Database comparison and granular change tracking
+- **Synchronization**: Transactional database updates with bulk operations
+- **Processing Pipeline**: Orchestrated workflow with error handling and metrics
+- **Performance**: Concurrent processing and optimization strategies
+
 ### [Worker Interfaces](worker-interfaces.md)
 Worker and message queue interfaces for extensibility:
 - **Message Formats**: Standardized message structures and serialization
@@ -103,25 +111,31 @@ Complete working examples for all APIs are available in the [examples/](examples
 
 **GitHub Client Usage:**
 ```python
-# [examples/github-client-usage.py](examples/github-client-usage.py)
+# [examples/github-integration.py](examples/github-integration.py)
 # Comprehensive examples of GitHub API operations
+```
+
+**PR Monitoring System:**
+```python
+# [examples/worker-implementation.py](examples/worker-implementation.py)
+# Complete PR monitoring workflow with three-phase processing
 ```
 
 **Configuration Management:**
 ```python
-# [examples/config-management.py](examples/config-management.py)
+# [examples/configuration-management.py](examples/configuration-management.py)
 # Configuration loading, validation, and utilities
 ```
 
 **Database Operations:**
 ```python
-# [examples/database-queries.py](examples/database-queries.py)
+# [examples/database-operations.py](examples/database-operations.py)
 # Model usage, repository patterns, and transactions
 ```
 
 **Webhook Handling:**
 ```python
-# [examples/webhook-handlers.py](examples/webhook-handlers.py)
+# [examples/webhook-integration.py](examples/webhook-integration.py)
 # Webhook endpoint implementation and event processing
 ```
 

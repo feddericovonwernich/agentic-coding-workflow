@@ -66,21 +66,64 @@ class BaseWorker(ABC):
                 logger.error(f"Worker {self.name} error: {e}")
                 await asyncio.sleep(1)  # Backoff on error
 
-# Example implementation
+# Example implementation - PR Monitor Worker
 class PRMonitorWorker(BaseWorker):
-    """Worker for monitoring pull requests."""
+    """Worker for monitoring pull requests using orchestrated processing."""
+    
+    def __init__(
+        self, 
+        name: str, 
+        queue_manager: QueueManager,
+        github_client: GitHubClient,
+        database_session: AsyncSession
+    ):
+        super().__init__(name, queue_manager)
+        self.processor = self._create_pr_processor(github_client, database_session)
+    
+    def _create_pr_processor(self, github_client: GitHubClient, database_session: AsyncSession):
+        """Create PR processor with all required services."""
+        pr_repo = PullRequestRepository(database_session)
+        check_repo = CheckRunRepository(database_session)
+        
+        discovery_service = GitHubPRDiscoveryService(github_client)
+        change_detector = DatabaseChangeDetector(pr_repo, check_repo)
+        synchronizer = DatabaseSynchronizer(database_session)
+        
+        return DefaultPRProcessor(
+            discovery_service=discovery_service,
+            change_detection_service=change_detector,
+            synchronization_service=synchronizer,
+            max_concurrent_repos=10
+        )
     
     async def process_message(self, message: WorkerMessage) -> bool:
-        if message.type == "monitor_repository":
-            return await self.monitor_repository(message.payload)
-        elif message.type == "check_pull_request":
-            return await self.check_pull_request(message.payload)
+        if message.type == "process_repository":
+            return await self.process_repository(message.payload)
+        elif message.type == "process_repositories_batch":
+            return await self.process_repositories_batch(message.payload)
         return False
     
-    async def monitor_repository(self, payload: dict) -> bool:
-        repository_id = payload["repository_id"]
-        # Monitor repository for new PRs
-        return True
+    async def process_repository(self, payload: dict) -> bool:
+        """Process a single repository for PR changes."""
+        repository = Repository.from_dict(payload["repository"])
+        result = await self.processor.process_repository(repository)
+        
+        logger.info(f"Repository {repository.name} processed: "
+                   f"success={result.success}, "
+                   f"changes={result.changes_synchronized}")
+        
+        return result.success
+    
+    async def process_repositories_batch(self, payload: dict) -> bool:
+        """Process multiple repositories concurrently."""
+        repositories = [Repository.from_dict(r) for r in payload["repositories"]]
+        batch_result = await self.processor.process_repositories(repositories)
+        
+        logger.info(f"Batch processing completed: "
+                   f"repos={batch_result.repositories_processed}, "
+                   f"success_rate={batch_result.success_rate:.1f}%")
+        
+        return batch_result.success_rate > 80  # Consider successful if >80% succeed
 
 # Usage
 async def main():
@@ -95,7 +138,7 @@ asyncio.run(main())
 
 ### System Overview
 
-The worker system follows an event-driven architecture:
+The worker system follows an event-driven architecture with specialized processing pipelines:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -110,6 +153,42 @@ The worker system follows an event-driven architecture:
          ▼                        ▼                        ▼
    Event Generation        Message Routing        Task Processing
 ```
+
+### PR Monitoring Architecture
+
+The PR Monitor Worker uses a sophisticated three-phase processing pipeline:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Discovery     │───▶│ Change Detection│───▶│ Synchronization │
+│                 │    │                 │    │                 │
+│ • GitHub API    │    │ • Database      │    │ • Transactional │
+│ • PR Fetching   │    │ • Comparison    │    │ • Bulk Updates  │
+│ • Check Runs    │    │ • Delta Logic   │    │ • State History │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                        │                        │
+         │                        │                        │
+         ▼                        ▼                        ▼
+    GitHub State           Change Analysis         Database State
+```
+
+#### Phase 1: Discovery
+- **GitHub PR Discovery Service**: Fetches PRs and check runs from GitHub API
+- **ETag Caching**: Conditional requests to minimize API calls
+- **Concurrent Requests**: Parallel processing with rate limiting
+- **Error Isolation**: Individual PR failures don't affect batch processing
+
+#### Phase 2: Change Detection
+- **Database Change Detector**: Compares GitHub state with stored data
+- **Granular Change Tracking**: Tracks specific field changes (title, state, SHA, etc.)
+- **Relationship Mapping**: Links check runs to correct PR records
+- **Performance Optimization**: Bulk database queries for efficiency
+
+#### Phase 3: Synchronization
+- **Database Synchronizer**: Persists changes with transactional consistency
+- **Bulk Operations**: Uses PostgreSQL UPSERT for performance
+- **State History**: Maintains audit trail of PR state transitions
+- **Error Recovery**: Rollback on failures to maintain data integrity
 
 ### Core Components
 
@@ -492,14 +571,43 @@ from datetime import datetime
 class PRMonitorMessage:
     """Message for PR monitoring tasks."""
     repository_id: str
+    repository_url: str
     pr_number: Optional[int] = None
     force_refresh: bool = False
+    since: Optional[datetime] = None  # For incremental updates
     
     def to_worker_message(self) -> WorkerMessage:
         return WorkerMessage(
             id=f"pr_monitor_{self.repository_id}_{int(datetime.now().timestamp())}",
-            type="monitor_repository",
-            payload=self.__dict__,
+            type="process_repository",
+            payload={
+                "repository": {
+                    "id": self.repository_id,
+                    "url": self.repository_url,
+                    "pr_number": self.pr_number,
+                    "force_refresh": self.force_refresh,
+                    "since": self.since.isoformat() if self.since else None
+                }
+            },
+            priority=1
+        )
+
+@dataclass  
+class PRBatchMonitorMessage:
+    """Message for batch PR monitoring tasks."""
+    repositories: List[dict]  # List of repository configurations
+    max_concurrent: int = 10
+    force_refresh: bool = False
+    
+    def to_worker_message(self) -> WorkerMessage:
+        return WorkerMessage(
+            id=f"pr_batch_monitor_{int(datetime.now().timestamp())}",
+            type="process_repositories_batch", 
+            payload={
+                "repositories": self.repositories,
+                "max_concurrent": self.max_concurrent,
+                "force_refresh": self.force_refresh
+            },
             priority=1
         )
 

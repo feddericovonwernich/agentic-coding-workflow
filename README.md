@@ -130,12 +130,33 @@ agentic-coding-workflow/
 │   │   ├── config.py       # Configuration management
 │   │   ├── connection.py   # Connection and session management
 │   │   └── health.py       # Health monitoring
-│   ├── models/             # SQLAlchemy models (future)
-│   ├── workers/            # Worker implementations (future)
-│   └── services/           # Shared services (future)
+│   ├── models/             # SQLAlchemy data models
+│   │   ├── pull_request.py # Pull request entities
+│   │   ├── check_run.py    # Check run entities
+│   │   └── repository.py   # Repository entities
+│   ├── repositories/       # Data access layer
+│   │   ├── pull_request.py # PR repository pattern
+│   │   ├── check_run.py    # Check run repository
+│   │   └── base.py         # Base repository interface
+│   ├── workers/            # Worker implementations
+│   │   └── monitor/        # PR monitoring worker
+│   │       ├── processor.py     # Core processing orchestrator
+│   │       ├── discovery.py     # GitHub PR discovery service
+│   │       ├── change_detection.py # Change detection logic
+│   │       ├── synchronization.py  # Database synchronization
+│   │       └── models.py         # Processing data models
+│   ├── github/             # GitHub API integration
+│   │   ├── client.py       # GitHub API client
+│   │   ├── rate_limiting.py # Rate limit handling
+│   │   └── pagination.py   # API pagination support
+│   └── config/             # Configuration management
+│       ├── loader.py       # Configuration loading
+│       └── validation.py   # Configuration validation
 ├── tests/
 │   ├── unit/              # Unit tests with mocks
+│   │   └── workers/       # Worker unit tests
 │   ├── integration/       # Integration tests
+│   │   └── workers/       # Worker integration tests
 │   └── conftest.py        # Test fixtures
 ├── alembic/               # Database migrations
 ├── docs/                  # Documentation

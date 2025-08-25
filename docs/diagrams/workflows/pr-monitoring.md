@@ -1,101 +1,149 @@
 # PR Monitoring Workflow
 
 ## Purpose
-This diagram shows the complete workflow of how the PR Monitor Worker discovers, tracks, and categorizes pull requests. It demonstrates the decision logic that determines whether a PR should be analyzed, reviewed, or escalated to humans.
+This diagram shows the complete workflow of the implemented PR Monitor Worker, which uses a three-phase processing pipeline to efficiently discover, analyze, and synchronize pull request data from GitHub to the database.
 
 ## What It Shows
-- **Periodic Polling**: How the system regularly checks for PR updates
-- **State Management**: How the system tracks what it has seen before
-- **Decision Logic**: Rules for determining next actions
-- **Escalation Triggers**: When human intervention is required
+- **Three-Phase Pipeline**: Discovery → Change Detection → Synchronization
+- **Orchestrated Processing**: How the DefaultPRProcessor coordinates all phases
+- **Error Handling**: How failures in each phase are managed and tracked
+- **Concurrency Management**: How multiple repositories are processed in parallel
 
 ## Key Insights
-- **Stateful Processing**: The system remembers what it has seen to avoid duplicate work
-- **Configurable Filtering**: Skip patterns allow customization of what gets processed
-- **Threshold-Based Escalation**: Repeated failures trigger human notification
-- **Branching Logic**: Different paths for new vs. existing PRs
+- **Service-Oriented Architecture**: Each phase uses dedicated services with clear interfaces
+- **Transactional Consistency**: Database changes are atomic and isolated
+- **Performance Optimization**: Bulk operations and concurrent processing
+- **Comprehensive Metrics**: Detailed tracking of processing results and errors
 
 ## Diagram
 
 ```mermaid
 flowchart TD
-    START([Timer Triggers<br/>Every X minutes]) --> FETCH[Fetch PRs from<br/>Configured Repos]
-    FETCH --> CHECK_SEEN{PR Seen<br/>Before?}
+    START([PR Processor<br/>Start]) --> INIT[Initialize Services<br/>Discovery, ChangeDetector, Synchronizer]
     
-    CHECK_SEEN -->|No| SAVE_NEW[Save PR to Database]
-    CHECK_SEEN -->|Yes| CHECK_CHANGES{New Check<br/>Runs?}
+    INIT --> PROCESS_REPO[Process Repository]
+    PROCESS_REPO --> DISCOVERY_PHASE[Phase 1: Discovery]
     
-    CHECK_CHANGES -->|No| END_MONITOR([End])
-    CHECK_CHANGES -->|Yes| UPDATE_HISTORY[Update Check History]
+    DISCOVERY_PHASE --> GITHUB_API[GitHub API<br/>Fetch PRs & Check Runs]
+    GITHUB_API --> ETAG_CACHE{ETag Cache<br/>Hit?}
     
-    SAVE_NEW --> EVAL_CHECKS{Any Failed<br/>Checks?}
-    UPDATE_HISTORY --> EVAL_CHECKS
+    ETAG_CACHE -->|Yes| CACHED_DATA[Use Cached Data]
+    ETAG_CACHE -->|No| PAGINATE[Paginate API Results<br/>With Rate Limiting]
     
-    EVAL_CHECKS -->|Yes| CHECK_EXCLUDED{All Failed Checks<br/>in Exclude List?}
-    EVAL_CHECKS -->|No| QUEUE_REVIEW[Queue for Review]
+    CACHED_DATA --> DISCOVERY_METRICS[Record Discovery Metrics<br/>PRs & Check Runs Count]
+    PAGINATE --> DISCOVERY_METRICS
     
-    CHECK_EXCLUDED -->|Yes| QUEUE_REVIEW
-    CHECK_EXCLUDED -->|No| CHECK_THRESHOLD{Failed > X<br/>Times?}
+    DISCOVERY_METRICS --> CHANGE_PHASE[Phase 2: Change Detection]
     
-    CHECK_THRESHOLD -->|Yes| NOTIFY_ADMIN[Notify Admin]
-    CHECK_THRESHOLD -->|No| QUEUE_ANALYSIS[Queue for Analysis]
+    CHANGE_PHASE --> DB_QUERY[Query Database<br/>for Existing PRs/Checks]
+    DB_QUERY --> COMPARE_DATA[Compare GitHub Data<br/>with Database State]
     
-    QUEUE_ANALYSIS --> END_MONITOR([End])
-    QUEUE_REVIEW --> END_MONITOR
-    NOTIFY_ADMIN --> END_MONITOR
+    COMPARE_DATA --> DETECT_CHANGES[Detect Changes<br/>New, Updated, State Changes]
+    DETECT_CHANGES --> CREATE_CHANGESET[Create ChangeSet<br/>with All Detected Changes]
+    
+    CREATE_CHANGESET --> SYNC_PHASE[Phase 3: Synchronization]
+    
+    SYNC_PHASE --> BEGIN_TX[Begin Database<br/>Transaction]
+    BEGIN_TX --> BULK_CREATE[Bulk Create<br/>New PRs]
+    
+    BULK_CREATE --> BULK_UPDATE[Bulk Update<br/>Existing PRs]
+    BULK_UPDATE --> CREATE_CHECKS[Create New<br/>Check Runs]
+    
+    CREATE_CHECKS --> UPDATE_CHECKS[Update Existing<br/>Check Runs]
+    UPDATE_CHECKS --> STATE_HISTORY[Update State<br/>History Records]
+    
+    STATE_HISTORY --> COMMIT_TX[Commit<br/>Transaction]
+    COMMIT_TX --> UPDATE_METRICS[Update Processing<br/>Metrics & Repository Tracking]
+    
+    UPDATE_METRICS --> CHECK_SUCCESS{Processing<br/>Successful?}
+    
+    CHECK_SUCCESS -->|Yes| RESET_FAILURE[Reset Repository<br/>Failure Count]
+    CHECK_SUCCESS -->|No| INCREMENT_FAILURE[Increment Repository<br/>Failure Count]
+    
+    RESET_FAILURE --> END_SUCCESS([End: Success])
+    INCREMENT_FAILURE --> LOG_ERROR[Log Errors &<br/>Update Tracking]
+    
+    LOG_ERROR --> END_ERROR([End: With Errors])
+    
+    %% Error paths
+    GITHUB_API -->|API Error| DISCOVERY_ERROR[Record Discovery<br/>Error]
+    COMPARE_DATA -->|DB Error| CHANGE_ERROR[Record Change<br/>Detection Error]
+    BEGIN_TX -->|TX Error| SYNC_ERROR[Record Sync<br/>Error & Rollback]
+    
+    DISCOVERY_ERROR --> INCREMENT_FAILURE
+    CHANGE_ERROR --> INCREMENT_FAILURE
+    SYNC_ERROR --> INCREMENT_FAILURE
+    
+    %% Concurrent processing
+    PROCESS_REPO --> BATCH_PROCESS{Batch<br/>Processing?}
+    BATCH_PROCESS -->|Yes| SEMAPHORE[Apply Concurrency<br/>Semaphore]
+    BATCH_PROCESS -->|No| DISCOVERY_PHASE
+    SEMAPHORE --> DISCOVERY_PHASE
     
     style START fill:#e1f5fe
-    style QUEUE_ANALYSIS fill:#ffebee
-    style QUEUE_REVIEW fill:#e8f5e9
-    style NOTIFY_ADMIN fill:#fff3e0
+    style DISCOVERY_PHASE fill:#e8f5e8
+    style CHANGE_PHASE fill:#fff3e0
+    style SYNC_PHASE fill:#fce4ec
+    style END_SUCCESS fill:#e8f5e8
+    style END_ERROR fill:#ffebee
 ```
 
 ## Workflow Steps Explained
 
-### 1. Trigger (Timer-Based)
-- **Frequency**: Configurable interval (default: 5 minutes)
-- **Purpose**: Ensures regular polling without overwhelming GitHub API
-- **Scalability**: Can be adjusted based on repository activity
+### 1. Service Initialization
+- **Dependency Injection**: Creates discovery, change detection, and synchronization services
+- **Configuration**: Applies concurrency limits and performance settings
+- **Database Connections**: Establishes repository pattern connections
 
-### 2. PR Fetching
-- **Source**: GitHub API for configured repositories
-- **Data Retrieved**: PR metadata, current status, check runs
-- **Filtering**: Applied at fetch time to reduce processing overhead
+### 2. Discovery Phase (GitHub API)
+- **PR Discovery Service**: GitHubPRDiscoveryService fetches PRs using GitHub API
+- **ETag Caching**: Conditional requests with If-None-Match headers to minimize API calls
+- **Pagination**: Handles large result sets with automatic pagination
+- **Rate Limiting**: Respects GitHub API limits with semaphore-based throttling
+- **Check Run Discovery**: Fetches check runs for PR head commits
+- **Concurrent Processing**: Batch processes multiple PRs in parallel
+- **Error Isolation**: Individual PR failures don't stop batch processing
 
-### 3. State Tracking Decision
-- **Database Lookup**: Check if PR exists in local database
-- **New PRs**: Full processing pipeline
-- **Existing PRs**: Only process if there are changes
+### 3. Change Detection Phase (Database Comparison)
+- **Database Change Detector**: Compares GitHub data with stored database state
+- **Granular Tracking**: Detects specific field changes:
+  - Title changes
+  - State transitions (opened → closed → merged)
+  - Draft status changes
+  - SHA changes (new commits)
+  - Metadata changes (labels, assignees, milestones)
+- **Bulk Queries**: Efficiently queries database for existing PRs and check runs
+- **Relationship Mapping**: Links check runs to correct PR records
+- **Change Categorization**: Organizes changes into new vs. updated entities
 
-### 4. Change Detection
-- **Check Run Comparison**: Compare current check runs with last known state
-- **Timestamp Tracking**: Use last_checked timestamp for efficiency
-- **State Changes**: Detect transitions in PR status
+### 4. Synchronization Phase (Database Updates)
+- **Transactional Processing**: Wraps all changes in database transactions
+- **Bulk Operations**: Uses PostgreSQL UPSERT for performance:
+  - Bulk PR creation with conflict resolution
+  - Bulk check run insertion
+  - Batch updates for existing records
+- **State History**: Maintains audit trail of PR state transitions
+- **Error Recovery**: Automatic rollback on failures to maintain data integrity
+- **Relationship Consistency**: Ensures foreign key relationships are maintained
 
-### 5. Check Evaluation
-- **Failure Detection**: Identify which checks have failed
-- **Success Handling**: Route successful PRs to review queue
-- **Status Filtering**: Only process completed (not running) checks
+### 5. Error Handling and Recovery
+- **Phase-Level Isolation**: Errors in one phase don't affect others
+- **Repository Tracking**: Maintains failure count and last success timestamp per repository
+- **Comprehensive Logging**: Structured logging with correlation IDs
+- **Metrics Collection**: Tracks processing times, success rates, and error patterns
+- **Retry Logic**: Built into GitHub client for transient failures
 
-### 6. Exclusion Filtering
-- **All Failed Checks Excluded**: If ALL failed checks are in the exclude list, treat as successful
-- **Partial Exclusion**: If only some failed checks are excluded, proceed with failure handling
-- **Skip Patterns**: Configurable patterns to exclude certain checks
-- **Examples**: 
-  - Dependabot PRs
-  - Draft PRs  
-  - Specific check types (codecov, etc.)
+### 6. Concurrent Processing Management
+- **Semaphore Control**: Limits concurrent repository processing to prevent resource exhaustion
+- **Batch Processing**: ProcessRepositories method handles multiple repos efficiently
+- **Error Isolation**: Individual repository failures don't affect others in batch
+- **Resource Management**: Proper cleanup and connection management
 
-### 7. Threshold Check (Before Analysis)
-- **Failure Counting**: Track consecutive failures per repository/check type
-- **Escalation Decision**: Check threshold BEFORE queuing for analysis
-- **Admin Notification**: Alert humans when threshold exceeded - bypass analysis
-- **Purpose**: Catch systemic issues that automation can't handle
-
-### 8. Queue Routing
-- **Analysis Queue**: Failed checks that need LLM analysis (only if under threshold)
-- **Review Queue**: Successful PRs or PRs with all failures excluded
-- **Event Publishing**: Async messaging to downstream workers
+### 7. Performance Optimization
+- **Bulk Database Operations**: Minimizes database round trips
+- **API Caching**: ETag-based conditional requests
+- **Concurrent GitHub Requests**: Parallel processing within rate limits
+- **Connection Pooling**: Reuses database connections efficiently
 
 ## Configuration Options
 
